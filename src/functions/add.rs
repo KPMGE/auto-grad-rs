@@ -2,19 +2,19 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     name_manager::NameManager,
-    operation::{Operation, ToArray2},
+    operation::Operation,
     tensor::{Tensor, TensorBuilder},
 };
 
 #[derive(Debug)]
 pub struct Add {
-    name_manager: NameManager,
+    name_manager: Rc<RefCell<NameManager>>,
 }
 
 impl Add {
     pub fn new() -> Self {
         Add {
-            name_manager: NameManager::new(),
+            name_manager: Rc::new(RefCell::new(NameManager::new())),
         }
     }
 }
@@ -24,10 +24,10 @@ impl Operation for Add {
         let a = &inputs[0].borrow().arr();
         let b = &inputs[1].borrow().arr();
         let sum = a + b;
-        let op_name = &self.name_manager.new_name("add");
+        let op_name = self.name_manager.clone().borrow_mut().new_name("add");
 
         let tensor = TensorBuilder::new(sum.clone())
-            .name(op_name)
+            .name(&op_name)
             .parents(vec![inputs[0].clone(), inputs[1].clone()])
             .operation(Box::new(Add::new()))
             .build();
