@@ -1,0 +1,45 @@
+use std::{cell::RefCell, rc::Rc};
+
+use crate::{
+    name_manager::NameManager,
+    operation::{Operation, ToArray2},
+    tensor::{Tensor, TensorBuilder},
+};
+
+#[derive(Debug)]
+pub struct Add {
+    name_manager: NameManager,
+}
+
+impl Add {
+    pub fn new() -> Self {
+        Add {
+            name_manager: NameManager::new(),
+        }
+    }
+}
+
+impl Operation for Add {
+    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+        let a = &inputs[0].borrow().arr();
+        let b = &inputs[1].borrow().arr();
+        let sum = a + b;
+        let op_name = &self.name_manager.new_name("add");
+
+        let tensor = TensorBuilder::new(sum.clone())
+            .name(op_name)
+            .parents(vec![inputs[0].clone(), inputs[1].clone()])
+            .operation(Box::new(Add::new()))
+            .build();
+
+        Rc::new(RefCell::new(tensor))
+    }
+
+    fn grad(
+        &self,
+        back_grad: Rc<RefCell<Tensor>>,
+        _args: &[Rc<RefCell<Tensor>>],
+    ) -> Vec<Rc<RefCell<Tensor>>> {
+        vec![back_grad.clone(), back_grad.clone()]
+    }
+}
