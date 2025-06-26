@@ -12,8 +12,8 @@ mod tensor;
 fn main() {
     let a = gd_tensor!(vec![1.0, 2.0, 3.0]);
     let b = gd_tensor!(vec![4.0, 5.0, 6.0]);
-    let c = add!(a, b);
-    let d = add!(c, 3.0);
+    let c = sub!(a, b);
+    let d = sub!(c, 3.0);
 
     d.borrow_mut().backward(None);
 
