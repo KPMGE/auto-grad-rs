@@ -6,6 +6,19 @@ use crate::{
     tensor::{Tensor, TensorBuilder},
 };
 
+#[macro_export]
+macro_rules! add {
+    ($val1:expr, $val2:expr) => {{
+        use crate::functions::Add;
+
+        let t1 = gd_tensor!($val1.clone());
+        let t2 = gd_tensor!($val2.clone());
+
+        let add = Add::new();
+        add.apply(&[t1, t2])
+    }};
+}
+
 #[derive(Debug)]
 pub struct Add {
     name_manager: Rc<RefCell<NameManager>>,
