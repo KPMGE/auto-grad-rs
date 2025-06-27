@@ -1,4 +1,7 @@
-use crate::{operation::ToArray2, tensor::{Tensor, TensorBuilder}};
+use crate::{
+    operation::ToArray2,
+    tensor::{Tensor, TensorBuilder},
+};
 use std::{cell::RefCell, rc::Rc};
 
 pub trait ToTensor {

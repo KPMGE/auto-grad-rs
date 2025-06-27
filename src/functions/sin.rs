@@ -1,0 +1,62 @@
+use std::{cell::RefCell, rc::Rc};
+
+use crate::{
+    gd_tensor,
+    name_manager::NameManager,
+    operation::Operation,
+    tensor::{Tensor, TensorBuilder},
+};
+
+#[macro_export]
+macro_rules! sin {
+    ($val1:expr) => {{
+        use crate::functions::Sin;
+
+        let t = gd_tensor!($val1.clone());
+
+        let sin = Sin::new();
+        sin.apply(&[t])
+    }};
+}
+
+#[derive(Debug)]
+pub struct Sin {
+    name_manager: Rc<RefCell<NameManager>>,
+}
+
+impl Sin {
+    pub fn new() -> Self {
+        Sin {
+            name_manager: Rc::new(RefCell::new(NameManager::new())),
+        }
+    }
+}
+
+impl Operation for Sin {
+    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+        let a = &inputs[0].borrow().arr();
+
+        let sin = a.sin();
+        let op_name = self.name_manager.clone().borrow_mut().new_name("sin");
+
+        let tensor = TensorBuilder::new(sin)
+            .name(&op_name)
+            .parents(vec![inputs[0].clone()])
+            .operation(Box::new(Sin::new()))
+            .build();
+
+        Rc::new(RefCell::new(tensor))
+    }
+
+    fn grad(
+        &self,
+        back_grad: Rc<RefCell<Tensor>>,
+        args: &[Rc<RefCell<Tensor>>],
+    ) -> Vec<Rc<RefCell<Tensor>>> {
+        let a = &args[0].borrow().arr();
+        let grad_arr = back_grad.borrow().arr() * a.cos();
+        let grad = gd_tensor!(grad_arr, name: "sin_grad");
+
+        vec![grad]
+    }
+}

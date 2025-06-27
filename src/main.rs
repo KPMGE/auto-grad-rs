@@ -1,6 +1,6 @@
-use std::{fmt::Debug, vec};
+use std::{f64::consts::PI, fmt::Debug, vec};
 
-use crate::{operation::Operation, tensor::Tensor};
+use crate::{operation::Operation, tensor::Tensor, tensor::ToTensor};
 
 mod functions;
 mod name_manager;
@@ -8,13 +8,14 @@ mod operation;
 mod tensor;
 
 fn main() {
-    let a = gd_tensor!(vec![3.0, 1.0, 0.0, 2.0]);
-    let b = add!(prod!(a, 3.0), a);
-    let c = sum!(b);
+    let a = gd_tensor!(vec![PI, 0.0, PI / 2.0]);
+    let b = sin!(a);
+    let c = cos!(a);
+    let d = sum!(add!(b, c));
 
-    c.borrow_mut().backward(None);
+    d.borrow_mut().backward(None);
 
-    println!("{:?}", a.clone().borrow().grad());
+    println!("{:#?}", a.borrow().grad());
 }
 
 impl Debug for Tensor {
