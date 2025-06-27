@@ -6,7 +6,7 @@ use crate::{
     operation::{Operation, ToArray2},
 };
 
-// #[derive(Debug)]
+#[derive(Debug)]
 pub struct Tensor {
     arr: Array2<f64>,
     parents: Vec<Rc<RefCell<Tensor>>>,
