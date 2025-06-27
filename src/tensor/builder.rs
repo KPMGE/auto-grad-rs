@@ -1,7 +1,10 @@
 use ndarray::Array2;
 use std::{cell::RefCell, rc::Rc, vec};
 
-use crate::operation::{Operation, ToArray2};
+use crate::{
+    gd_tensor,
+    operation::{Operation, ToArray2},
+};
 
 // #[derive(Debug)]
 pub struct Tensor {
@@ -49,12 +52,12 @@ impl Tensor {
         if self.grad.is_none() {
             self.grad = Some(my_grad.clone().unwrap());
         } else {
-            let grad_val = self.grad.as_ref().unwrap();
-            let acc = grad_val.borrow().arr() + self.grad.as_ref().unwrap().borrow().arr();
-            let tensor = Rc::new(RefCell::new(
-                TensorBuilder::new(acc).requires_grad(false).build(),
-            ));
-            self.grad = Some(tensor);
+            let self_grad_arr = self.grad.as_ref().unwrap().borrow().arr();
+            let my_grad_arr = my_grad.as_ref().unwrap().as_ref().borrow().arr();
+            let acc = self_grad_arr + my_grad_arr;
+            let new_grad = gd_tensor!(acc, requires_grad: false);
+
+            self.grad = Some(new_grad);
         }
 
         if let Some(operation) = &self.operation {

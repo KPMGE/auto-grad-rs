@@ -1,13 +1,16 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor, name_manager::NameManager, operation::Operation, tensor::{Tensor, TensorBuilder}
+    gd_tensor,
+    name_manager::NameManager,
+    operation::Operation,
+    tensor::{Tensor, TensorBuilder},
 };
 
 #[macro_export]
 macro_rules! prod {
     ($val1:expr, $val2:expr) => {{
-      use crate::functions::Prod;
+        use crate::functions::Prod;
 
         let t1 = gd_tensor!($val1.clone());
         let t2 = gd_tensor!($val2.clone());
@@ -57,7 +60,6 @@ impl Operation for Prod {
 
         let grad_a = gd_tensor!(back_grad_arr.clone() * b, name: "prod_grad");
         let grad_b = gd_tensor!(back_grad_arr * a, name: "prod_grad");
-
 
         vec![grad_a, grad_b]
     }

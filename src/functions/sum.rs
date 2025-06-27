@@ -1,0 +1,64 @@
+use std::{cell::RefCell, rc::Rc};
+
+use ndarray::Array2;
+
+use crate::{
+    gd_tensor,
+    name_manager::NameManager,
+    operation::Operation,
+    tensor::{Tensor, TensorBuilder},
+};
+
+#[macro_export]
+macro_rules! sum {
+    ($val1:expr) => {{
+        use crate::functions::Sum;
+
+        let t = gd_tensor!($val1.clone());
+
+        let sum = Sum::new();
+        sum.apply(&[t])
+    }};
+}
+
+#[derive(Debug)]
+pub struct Sum {
+    name_manager: Rc<RefCell<NameManager>>,
+}
+
+impl Sum {
+    pub fn new() -> Self {
+        Sum {
+            name_manager: Rc::new(RefCell::new(NameManager::new())),
+        }
+    }
+}
+
+impl Operation for Sum {
+    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+        let a = &inputs[0].borrow().arr();
+
+        let sum = a.sum();
+        let op_name = self.name_manager.clone().borrow_mut().new_name("sum");
+
+        let tensor = TensorBuilder::new(sum)
+            .name(&op_name)
+            .parents(vec![inputs[0].clone()])
+            .operation(Box::new(Sum::new()))
+            .build();
+
+        Rc::new(RefCell::new(tensor))
+    }
+
+    fn grad(
+        &self,
+        back_grad: Rc<RefCell<Tensor>>,
+        args: &[Rc<RefCell<Tensor>>],
+    ) -> Vec<Rc<RefCell<Tensor>>> {
+        let input_dim = args[0].borrow().arr().raw_dim();
+        let grad_arr = Array2::from_elem(input_dim, 1.0);
+        let grad = gd_tensor!(grad_arr, name: "sum_grad");
+
+        vec![grad]
+    }
+}

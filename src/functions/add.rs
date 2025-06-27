@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
+    gd_tensor,
     name_manager::NameManager,
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -53,6 +54,9 @@ impl Operation for Add {
         back_grad: Rc<RefCell<Tensor>>,
         _args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        vec![back_grad.clone(), back_grad.clone()]
+        let back_grad_arr = back_grad.borrow().arr();
+        let grad = gd_tensor!(back_grad_arr.clone(), name: "add_grad");
+
+        vec![grad.clone(), grad]
     }
 }
