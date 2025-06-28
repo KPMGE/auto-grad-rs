@@ -9,7 +9,7 @@ mod tensor;
 
 fn main() {
     let v = gd_tensor!(vec![-1.0, 0.0, 1.0, 3.0]);
-    let w = tanh!(v);
+    let w = sigmoid!(v);
 
     println!("{:#?}", w);
 
