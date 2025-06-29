@@ -1,6 +1,8 @@
+#[allow(unused_imports)]
 mod add;
 mod cos;
 mod exp;
+mod matmul;
 mod prod;
 mod sigmoid;
 mod sin;
@@ -12,6 +14,7 @@ mod tanh;
 pub use add::*;
 pub use cos::*;
 pub use exp::*;
+pub use matmul::*;
 pub use prod::*;
 pub use sigmoid::*;
 pub use sin::*;

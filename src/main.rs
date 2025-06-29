@@ -1,30 +1,19 @@
 use std::vec;
 
-use crate::{operation::Operation, tensor::Tensor};
-
 mod functions;
 mod name_manager;
 mod operation;
 mod tensor;
 
 fn main() {
+    let w = gd_tensor!(matrix![[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
     let v = gd_tensor!(vec![1.0, 2.0, 3.0]);
-    let w = exp!(v);
+    let z = matmul!(w, v);
 
-    println!("{:#?}", w);
+    println!("{:#?}", z.borrow().arr());
 
-    w.borrow_mut().backward(None);
+    z.borrow_mut().backward(None);
 
+    println!("{:#?}", w.borrow().grad());
     println!("{:#?}", v.borrow().grad());
-
-    println!("=========================================");
-
-    let v2 = gd_tensor!(vec![3.0, 1.0, 0.0, 2.0]);
-    let w2 = square!(v2);
-
-    println!("{:#?}", w2);
-
-    w2.borrow_mut().backward(None);
-
-    println!("{:#?}", v2.borrow().grad());
 }
