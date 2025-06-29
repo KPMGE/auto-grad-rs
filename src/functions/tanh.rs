@@ -56,11 +56,9 @@ impl Operation for Tanh {
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let a = &args[0].borrow().arr();
-        let input_dim = a.raw_dim();
-        let ones_arr = Array2::from_elem(input_dim, 1.0);
         let tanh_squared = a.mapv(|v| v.tanh() * v.tanh());
 
-        let grad_arr = ones_arr - tanh_squared;
+        let grad_arr = 1.0 - tanh_squared;
         let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "tanh_grad");
 
         vec![grad]

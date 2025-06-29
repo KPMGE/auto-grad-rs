@@ -1,7 +1,5 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ndarray::Array2;
-
 use crate::{
     gd_tensor,
     name_manager::NameManager,
@@ -10,47 +8,41 @@ use crate::{
 };
 
 #[macro_export]
-macro_rules! sigmoid {
+macro_rules! exp {
     ($val1:expr) => {{
-        use crate::functions::Sigmoid;
+        use crate::functions::Exp;
 
         let t = gd_tensor!($val1.clone());
 
-        let sigmoid = Sigmoid::new();
-        sigmoid.apply(&[t])
+        let exp = Exp::new();
+        exp.apply(&[t])
     }};
 }
 
 #[derive(Debug)]
-pub struct Sigmoid {
+pub struct Exp {
     name_manager: Rc<RefCell<NameManager>>,
 }
 
-impl Sigmoid {
+impl Exp {
     pub fn new() -> Self {
-        Sigmoid {
+        Exp {
             name_manager: Rc::new(RefCell::new(NameManager::new())),
         }
     }
 }
 
-impl Sigmoid {
-    fn sigmoid(&self, val: f64) -> f64 {
-        1.0 / (1.0 + (-val).exp())
-    }
-}
-
-impl Operation for Sigmoid {
+impl Operation for Exp {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
         let a = &inputs[0].borrow().arr();
 
-        let sigmoid = a.mapv(|v| self.sigmoid(v));
-        let op_name = self.name_manager.clone().borrow_mut().new_name("sigmoid");
+        let exp = a.mapv(|v| v.exp());
+        let op_name = self.name_manager.clone().borrow_mut().new_name("exp");
 
-        let tensor = TensorBuilder::new(sigmoid)
+        let tensor = TensorBuilder::new(exp)
             .name(&op_name)
             .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Sigmoid::new()))
+            .operation(Box::new(Exp::new()))
             .build();
 
         Rc::new(RefCell::new(tensor))
@@ -62,10 +54,8 @@ impl Operation for Sigmoid {
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let a = &args[0].borrow().arr();
-        let sigmod_result_arr = a.mapv(|v| self.sigmoid(v));
-
-        let grad_arr = sigmod_result_arr.clone() * (1.0 - sigmod_result_arr);
-        let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "sigmoid_grad");
+        let grad_arr = a.exp();
+        let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "exp_grad");
 
         vec![grad]
     }
