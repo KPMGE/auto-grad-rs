@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     gd_tensor,
-    name_manager::NameManager,
+    name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
 };
@@ -37,7 +37,7 @@ pub struct MatMul {
 impl MatMul {
     pub fn new() -> Self {
         MatMul {
-            name_manager: Rc::new(RefCell::new(NameManager::new())),
+            name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }
@@ -72,6 +72,9 @@ impl Operation for MatMul {
         let a_grad = back_grad_arr.dot(&b.t());
         let b_grad = a.t().dot(&back_grad_arr);
 
-        vec![gd_tensor!(a_grad), gd_tensor!(b_grad)]
+        vec![
+            gd_tensor!(a_grad, name: "matmul_grad"),
+            gd_tensor!(b_grad, name: "matmul_grad"),
+        ]
     }
 }

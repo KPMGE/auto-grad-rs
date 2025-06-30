@@ -4,7 +4,7 @@ use ndarray::Array2;
 
 use crate::{
     gd_tensor,
-    name_manager::NameManager,
+    name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
 };
@@ -29,7 +29,7 @@ pub struct Sigmoid {
 impl Sigmoid {
     pub fn new() -> Self {
         Sigmoid {
-            name_manager: Rc::new(RefCell::new(NameManager::new())),
+            name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }

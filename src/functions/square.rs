@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     gd_tensor,
-    name_manager::NameManager,
+    name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
 };
@@ -27,7 +27,7 @@ pub struct Square {
 impl Square {
     pub fn new() -> Self {
         Square {
-            name_manager: Rc::new(RefCell::new(NameManager::new())),
+            name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }

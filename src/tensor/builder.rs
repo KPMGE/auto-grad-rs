@@ -17,23 +17,6 @@ pub struct Tensor {
 }
 
 impl Tensor {
-    pub fn new<T: ToArray2>(
-        arr: T,
-        parents: Vec<Rc<RefCell<Tensor>>>,
-        requires_grad: bool,
-        name: Option<String>,
-        operation: Option<Box<dyn Operation>>,
-    ) -> Self {
-        Tensor {
-            arr: arr.to_array2(),
-            parents,
-            requires_grad,
-            name,
-            operation,
-            grad: None,
-        }
-    }
-
     pub fn arr(&self) -> Array2<f64> {
         self.arr.clone()
     }

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(Debug)]
 pub struct NameManager {
@@ -22,4 +22,8 @@ impl NameManager {
     pub fn reset(&mut self) {
         self.count.clear();
     }
+}
+
+thread_local! {
+    pub(crate) static NAME_MANAGER: Rc<RefCell<NameManager>> = Rc::new(RefCell::new(NameManager::new()));
 }

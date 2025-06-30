@@ -1,7 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor, name_manager::{self, NameManager}, operation::Operation, tensor::{Tensor, TensorBuilder}
+    gd_tensor,
+    name_manager::{NameManager, NAME_MANAGER},
+    operation::Operation,
+    tensor::{Tensor, TensorBuilder},
 };
 
 #[macro_export]
@@ -25,7 +28,7 @@ pub struct Sub {
 impl Sub {
     pub fn new() -> Self {
         Sub {
-            name_manager: Rc::new(RefCell::new(NameManager::new())),
+            name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }
@@ -55,7 +58,6 @@ impl Operation for Sub {
 
         let grad_a = gd_tensor!(back_grad_arr.clone(), name: "sub_grad");
         let grad_b = gd_tensor!(&back_grad_arr * -1.0, name: "sub_grad");
-
 
         vec![grad_a, grad_b]
     }

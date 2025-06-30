@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     gd_tensor,
-    name_manager::NameManager,
+    name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
 };
@@ -27,7 +27,7 @@ pub struct Sin {
 impl Sin {
     pub fn new() -> Self {
         Sin {
-            name_manager: Rc::new(RefCell::new(NameManager::new())),
+            name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }
