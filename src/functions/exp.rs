@@ -1,9 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
+    tensor,
     tensor::{Tensor, TensorBuilder},
 };
 
@@ -11,6 +11,7 @@ use crate::{
 macro_rules! exp {
     ($val1:expr) => {{
         use crate::functions::Exp;
+        use crate::operation::Operation;
 
         let t = tensor!($val1.clone());
 

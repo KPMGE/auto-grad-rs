@@ -3,9 +3,9 @@ use std::{cell::RefCell, rc::Rc};
 use ndarray::Array2;
 
 use crate::{
-    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
+    tensor,
     tensor::{Tensor, TensorBuilder},
 };
 
@@ -13,6 +13,7 @@ use crate::{
 macro_rules! sigmoid {
     ($val1:expr) => {{
         use crate::functions::Sigmoid;
+        use crate::operation::Operation;
 
         let t = tensor!($val1.clone());
 

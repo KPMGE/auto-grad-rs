@@ -1,9 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
+    tensor,
     tensor::{Tensor, TensorBuilder},
 };
 
