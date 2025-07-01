@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -12,7 +12,7 @@ macro_rules! sin {
     ($val1:expr) => {{
         use crate::functions::Sin;
 
-        let t = gd_tensor!($val1.clone());
+        let t = tensor!($val1.clone());
 
         let sin = Sin::new();
         sin.apply(&[t])
@@ -55,7 +55,7 @@ impl Operation for Sin {
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let a = &args[0].borrow().arr();
         let grad_arr = back_grad.borrow().arr() * a.cos();
-        let grad = gd_tensor!(grad_arr, name: "sin_grad");
+        let grad = tensor!(grad_arr, name: "sin_grad");
 
         vec![grad]
     }

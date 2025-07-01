@@ -28,7 +28,7 @@ impl<T: ToArray2> ToTensor for T {
 }
 
 #[macro_export]
-macro_rules! gd_tensor {
+macro_rules! tensor {
     ($val:expr) => {{
         use $crate::tensor::ToTensor;
         $val.to_tensor()

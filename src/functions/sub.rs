@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -12,8 +12,8 @@ macro_rules! sub {
     ($val1:expr, $val2:expr) => {{
         use crate::functions::Sub;
 
-        let t1 = gd_tensor!($val1.clone());
-        let t2 = gd_tensor!($val2.clone());
+        let t1 = tensor!($val1.clone());
+        let t2 = tensor!($val2.clone());
 
         let sub = Sub::new();
         sub.apply(&[t1, t2])
@@ -56,8 +56,8 @@ impl Operation for Sub {
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let back_grad_arr = back_grad.borrow().arr();
 
-        let grad_a = gd_tensor!(back_grad_arr.clone(), name: "sub_grad");
-        let grad_b = gd_tensor!(&back_grad_arr * -1.0, name: "sub_grad");
+        let grad_a = tensor!(back_grad_arr.clone(), name: "sub_grad");
+        let grad_b = tensor!(&back_grad_arr * -1.0, name: "sub_grad");
 
         vec![grad_a, grad_b]
     }

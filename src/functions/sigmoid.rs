@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use ndarray::Array2;
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -14,7 +14,7 @@ macro_rules! sigmoid {
     ($val1:expr) => {{
         use crate::functions::Sigmoid;
 
-        let t = gd_tensor!($val1.clone());
+        let t = tensor!($val1.clone());
 
         let sigmoid = Sigmoid::new();
         sigmoid.apply(&[t])
@@ -65,7 +65,7 @@ impl Operation for Sigmoid {
         let sigmod_result_arr = a.mapv(|v| self.sigmoid(v));
 
         let grad_arr = sigmod_result_arr.clone() * (1.0 - sigmod_result_arr);
-        let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "sigmoid_grad");
+        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "sigmoid_grad");
 
         vec![grad]
     }

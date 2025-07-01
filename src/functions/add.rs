@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -11,9 +11,10 @@ use crate::{
 macro_rules! add {
     ($val1:expr, $val2:expr) => {{
         use crate::functions::Add;
+        use crate::operation::Operation;
 
-        let t1 = gd_tensor!($val1.clone());
-        let t2 = gd_tensor!($val2.clone());
+        let t1 = tensor!($val1.clone());
+        let t2 = tensor!($val2.clone());
 
         let add = Add::new();
         add.apply(&[t1, t2])
@@ -55,7 +56,7 @@ impl Operation for Add {
         _args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let back_grad_arr = back_grad.borrow().arr();
-        let grad = gd_tensor!(back_grad_arr.clone(), name: "add_grad");
+        let grad = tensor!(back_grad_arr.clone(), name: "add_grad");
 
         vec![grad.clone(), grad]
     }

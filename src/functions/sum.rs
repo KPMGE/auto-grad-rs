@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use ndarray::Array2;
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -14,7 +14,7 @@ macro_rules! sum {
     ($val1:expr) => {{
         use crate::functions::Sum;
 
-        let t = gd_tensor!($val1.clone());
+        let t = tensor!($val1.clone());
 
         let sum = Sum::new();
         sum.apply(&[t])
@@ -57,7 +57,7 @@ impl Operation for Sum {
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let input_dim = args[0].borrow().arr().raw_dim();
         let grad_arr = Array2::from_elem(input_dim, 1.0);
-        let grad = gd_tensor!(grad_arr, name: "sum_grad");
+        let grad = tensor!(grad_arr, name: "sum_grad");
 
         vec![grad]
     }

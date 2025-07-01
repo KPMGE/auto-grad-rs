@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -21,8 +21,8 @@ macro_rules! matmul {
         use crate::functions::MatMul;
         use crate::operation::Operation;
 
-        let t1 = gd_tensor!($val1.clone());
-        let t2 = gd_tensor!($val2.clone());
+        let t1 = tensor!($val1.clone());
+        let t2 = tensor!($val2.clone());
 
         let matmul = MatMul::new();
         matmul.apply(&[t1, t2])
@@ -73,8 +73,8 @@ impl Operation for MatMul {
         let b_grad = a.t().dot(&back_grad_arr);
 
         vec![
-            gd_tensor!(a_grad, name: "matmul_grad"),
-            gd_tensor!(b_grad, name: "matmul_grad"),
+            tensor!(a_grad, name: "matmul_grad"),
+            tensor!(b_grad, name: "matmul_grad"),
         ]
     }
 }

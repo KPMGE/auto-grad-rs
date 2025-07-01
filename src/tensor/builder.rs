@@ -2,8 +2,8 @@ use ndarray::Array2;
 use std::{cell::RefCell, rc::Rc, vec};
 
 use crate::{
-    gd_tensor,
     operation::{Operation, ToArray2},
+    tensor,
 };
 
 #[derive(Debug)]
@@ -38,7 +38,7 @@ impl Tensor {
             let self_grad_arr = self.grad.as_ref().unwrap().borrow().arr();
             let my_grad_arr = my_grad.as_ref().unwrap().as_ref().borrow().arr();
             let acc = self_grad_arr + my_grad_arr;
-            let new_grad = gd_tensor!(acc, requires_grad: false);
+            let new_grad = tensor!(acc, requires_grad: false);
 
             self.grad = Some(new_grad);
         }

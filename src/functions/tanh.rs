@@ -1,9 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ndarray::Array2;
-
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -13,8 +11,9 @@ use crate::{
 macro_rules! tanh {
     ($val1:expr) => {{
         use crate::functions::Tanh;
+        use crate::operation::Operation;
 
-        let t = gd_tensor!($val1.clone());
+        let t = tensor!($val1.clone());
 
         let tanh = Tanh::new();
         tanh.apply(&[t])
@@ -59,7 +58,7 @@ impl Operation for Tanh {
         let tanh_squared = a.mapv(|v| v.tanh() * v.tanh());
 
         let grad_arr = 1.0 - tanh_squared;
-        let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "tanh_grad");
+        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "tanh_grad");
 
         vec![grad]
     }

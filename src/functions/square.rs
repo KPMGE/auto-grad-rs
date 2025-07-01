@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    gd_tensor,
+    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor::{Tensor, TensorBuilder},
@@ -12,7 +12,7 @@ macro_rules! square {
     ($val1:expr) => {{
         use crate::functions::Square;
 
-        let t = gd_tensor!($val1.clone());
+        let t = tensor!($val1.clone());
 
         let square = Square::new();
         square.apply(&[t])
@@ -55,7 +55,7 @@ impl Operation for Square {
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let a = &args[0].borrow().arr();
         let grad_arr = 2.0 * a;
-        let grad = gd_tensor!(back_grad.borrow().arr() * grad_arr, name: "square_grad");
+        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "square_grad");
 
         vec![grad]
     }
