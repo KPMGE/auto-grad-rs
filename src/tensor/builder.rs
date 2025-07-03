@@ -55,6 +55,20 @@ impl Tensor {
     pub fn grad(&self) -> &Option<Rc<RefCell<Tensor>>> {
         &self.grad
     }
+
+    pub fn zero_grad(&mut self) {
+        let arr_dim = self.arr.raw_dim();
+        let ones_arr: Array2<f64> = Array2::from_elem(arr_dim, 1.0);
+        self.grad = Some(tensor!(ones_arr));
+    }
+
+    pub fn set_grad(&mut self, grad: Rc<RefCell<Tensor>>) {
+        self.grad = Some(grad);
+    }
+
+    pub fn set_arr(&mut self, val: impl ToArray2) {
+        self.arr = val.to_array2();
+    }
 }
 
 pub struct TensorBuilder {
@@ -113,15 +127,8 @@ impl TensorBuilder {
     }
 }
 
-impl Default for Tensor {
-    fn default() -> Self {
-        Tensor {
-            arr: Array2::zeros((2, 2)),
-            parents: vec![],
-            requires_grad: true,
-            name: None,
-            operation: None,
-            grad: None,
-        }
+impl std::fmt::Display for Tensor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.arr())
     }
 }
