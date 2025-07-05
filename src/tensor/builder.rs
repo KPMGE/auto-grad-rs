@@ -58,7 +58,7 @@ impl Tensor {
 
     pub fn zero_grad(&mut self) {
         let arr_dim = self.arr.raw_dim();
-        let ones_arr: Array2<f64> = Array2::from_elem(arr_dim, 1.0);
+        let ones_arr: Array2<f64> = Array2::from_elem(arr_dim, 0.0);
         self.grad = Some(tensor!(ones_arr));
     }
 
