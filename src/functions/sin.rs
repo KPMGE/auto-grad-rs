@@ -35,9 +35,9 @@ impl Sin {
 
 impl Operation for Sin {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let sin = a.sin();
+        let sin = a.borrow().arr().sin();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sin");
 
         let tensor = TensorBuilder::new(sin)
@@ -54,8 +54,8 @@ impl Operation for Sin {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let grad_arr = back_grad.borrow().arr() * a.cos();
+        let a = &args[0];
+        let grad_arr = back_grad.borrow().arr() * a.borrow().arr().cos();
         let grad = tensor!(grad_arr, name: "sin_grad");
 
         vec![grad]

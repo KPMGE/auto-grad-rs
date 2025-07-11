@@ -37,9 +37,9 @@ impl Sum {
 
 impl Operation for Sum {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let sum = a.sum();
+        let sum = a.borrow().arr().sum();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sum");
 
         let tensor = TensorBuilder::new(sum)

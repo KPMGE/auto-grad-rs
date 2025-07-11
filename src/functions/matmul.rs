@@ -1,9 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    tensor,
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
+    tensor,
     tensor::{Tensor, TensorBuilder},
 };
 
@@ -44,10 +44,10 @@ impl MatMul {
 
 impl Operation for MatMul {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
-        let b = &inputs[1].borrow().arr();
+        let a = &inputs[0];
+        let b = &inputs[1];
 
-        let mul = a.dot(b);
+        let mul = a.borrow().arr().dot(b.borrow().arr());
 
         let op_name = self.name_manager.clone().borrow_mut().new_name("matmul");
 
@@ -65,12 +65,11 @@ impl Operation for MatMul {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let b = &args[1].borrow().arr();
-        let back_grad_arr = back_grad.borrow().arr();
+        let a = &args[0];
+        let b = &args[1];
 
-        let a_grad = back_grad_arr.dot(&b.t());
-        let b_grad = a.t().dot(&back_grad_arr);
+        let a_grad = back_grad.borrow().arr().dot(&b.borrow().arr().t());
+        let b_grad = a.borrow().arr().t().dot(back_grad.borrow().arr());
 
         vec![
             tensor!(a_grad, name: "matmul_grad"),

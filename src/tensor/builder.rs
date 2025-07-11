@@ -7,6 +7,9 @@ use crate::{
 };
 
 #[derive(Debug)]
+pub struct TensorRef(Rc<RefCell<Tensor>>);
+
+#[derive(Debug)]
 pub struct Tensor {
     arr: Array2<f64>,
     parents: Vec<Rc<RefCell<Tensor>>>,
@@ -17,8 +20,8 @@ pub struct Tensor {
 }
 
 impl Tensor {
-    pub fn arr(&self) -> Array2<f64> {
-        self.arr.clone()
+    pub fn arr(&self) -> &Array2<f64> {
+        &self.arr
     }
 
     pub fn backward(&mut self, mut my_grad: Option<Rc<RefCell<Tensor>>>) {
@@ -35,9 +38,8 @@ impl Tensor {
         if self.grad.is_none() {
             self.grad = Some(my_grad.clone().unwrap());
         } else {
-            let self_grad_arr = self.grad.as_ref().unwrap().borrow().arr();
-            let my_grad_arr = my_grad.as_ref().unwrap().as_ref().borrow().arr();
-            let acc = self_grad_arr + my_grad_arr;
+            let acc = self.grad.as_ref().unwrap().borrow().arr()
+                + my_grad.as_ref().unwrap().as_ref().borrow().arr();
             let new_grad = tensor!(acc, requires_grad: false);
 
             self.grad = Some(new_grad);

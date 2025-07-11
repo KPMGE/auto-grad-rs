@@ -51,9 +51,9 @@ impl ReLU {
 
 impl Operation for ReLU {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let relu = a.mapv(|x| ReLU::apply(x));
+        let relu = a.borrow().arr().mapv(|x| ReLU::apply(x));
         let op_name = self.name_manager.clone().borrow_mut().new_name("relu");
 
         let tensor = TensorBuilder::new(relu)
@@ -70,8 +70,8 @@ impl Operation for ReLU {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let relu_grad = a.mapv(|x| ReLU::grad(x)) * back_grad.borrow().arr();
+        let a = &args[0];
+        let relu_grad = a.borrow().arr().mapv(|x| ReLU::grad(x)) * back_grad.borrow().arr();
         let grad = tensor!(relu_grad, name: "relu_grad");
 
         vec![grad]

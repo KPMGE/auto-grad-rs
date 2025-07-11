@@ -1,7 +1,5 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ndarray::Array2;
-
 use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
@@ -10,48 +8,42 @@ use crate::{
 };
 
 #[macro_export]
-macro_rules! sigmoid {
+macro_rules! ln {
     ($val1:expr) => {{
-        use crate::functions::Sigmoid;
+        use crate::functions::Ln;
         use crate::operation::Operation;
 
         let t = tensor!($val1.clone());
 
-        let sigmoid = Sigmoid::new();
-        sigmoid.apply(&[t])
+        let ln = Ln::new();
+        ln.apply(&[t])
     }};
 }
 
 #[derive(Debug)]
-pub struct Sigmoid {
+pub struct Ln {
     name_manager: Rc<RefCell<NameManager>>,
 }
 
-impl Sigmoid {
+impl Ln {
     pub fn new() -> Self {
-        Sigmoid {
+        Ln {
             name_manager: NAME_MANAGER.with(|mn| mn.clone()),
         }
     }
 }
 
-impl Sigmoid {
-    fn sigmoid(&self, val: f64) -> f64 {
-        1.0 / (1.0 + (-val).exp())
-    }
-}
-
-impl Operation for Sigmoid {
+impl Operation for Ln {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
         let a = &inputs[0];
 
-        let sigmoid = a.borrow().arr().mapv(|v| self.sigmoid(v));
-        let op_name = self.name_manager.clone().borrow_mut().new_name("sigmoid");
+        let lns = a.borrow().arr().mapv(|v| v.ln());
+        let op_name = self.name_manager.clone().borrow_mut().new_name("ln");
 
-        let tensor = TensorBuilder::new(sigmoid)
+        let tensor = TensorBuilder::new(lns)
             .name(&op_name)
             .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Sigmoid::new()))
+            .operation(Box::new(Ln::new()))
             .build();
 
         Rc::new(RefCell::new(tensor))
@@ -63,10 +55,8 @@ impl Operation for Sigmoid {
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let a = &args[0];
-        let sigmod_result_arr = a.borrow().arr().mapv(|v| self.sigmoid(v));
-
-        let grad_arr = sigmod_result_arr.clone() * (1.0 - sigmod_result_arr);
-        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "sigmoid_grad");
+        let grad_arr = a.borrow().arr().mapv(|x| 1.0 / x);
+        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "ln_grad");
 
         vec![grad]
     }

@@ -35,9 +35,9 @@ impl Square {
 
 impl Operation for Square {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let square = a.mapv(|v| v.powf(2.0));
+        let square = a.borrow().arr().mapv(|v| v.powf(2.0));
         let op_name = self.name_manager.clone().borrow_mut().new_name("square");
 
         let tensor = TensorBuilder::new(square)
@@ -54,8 +54,8 @@ impl Operation for Square {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let grad_arr = 2.0 * a;
+        let a = &args[0];
+        let grad_arr = 2.0 * a.borrow().arr();
         let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "square_grad");
 
         vec![grad]

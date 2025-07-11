@@ -35,9 +35,9 @@ impl Exp {
 
 impl Operation for Exp {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let exp = a.mapv(|v| v.exp());
+        let exp = a.borrow().arr().mapv(|v| v.exp());
         let op_name = self.name_manager.clone().borrow_mut().new_name("exp");
 
         let tensor = TensorBuilder::new(exp)
@@ -54,8 +54,8 @@ impl Operation for Exp {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let grad_arr = a.exp();
+        let a = &args[0];
+        let grad_arr = a.borrow().arr().exp();
         let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "exp_grad");
 
         vec![grad]

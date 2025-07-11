@@ -35,9 +35,9 @@ impl Tanh {
 
 impl Operation for Tanh {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
+        let a = &inputs[0];
 
-        let tanh = a.mapv(f64::tanh);
+        let tanh = a.borrow().arr().mapv(f64::tanh);
         let op_name = self.name_manager.clone().borrow_mut().new_name("tanh");
 
         let tensor = TensorBuilder::new(tanh)
@@ -54,8 +54,8 @@ impl Operation for Tanh {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let tanh_squared = a.mapv(|v| v.tanh() * v.tanh());
+        let a = &args[0];
+        let tanh_squared = a.borrow().arr().mapv(|v| v.tanh() * v.tanh());
 
         let grad_arr = 1.0 - tanh_squared;
         let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "tanh_grad");

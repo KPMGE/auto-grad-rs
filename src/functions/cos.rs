@@ -35,9 +35,8 @@ impl Cos {
 
 impl Operation for Cos {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
-
-        let cos_arr = a.cos();
+        let a = &inputs[0];
+        let cos_arr = a.borrow().arr().cos();
         let op_name = self.name_manager.clone().borrow_mut().new_name("cos");
 
         let tensor = TensorBuilder::new(cos_arr)
@@ -54,8 +53,8 @@ impl Operation for Cos {
         back_grad: Rc<RefCell<Tensor>>,
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let a = &args[0].borrow().arr();
-        let grad_arr = back_grad.borrow().arr() * -a.sin();
+        let a = &args[0];
+        let grad_arr = back_grad.borrow().arr() * -a.borrow().arr().sin();
         let grad = tensor!(grad_arr, name: "cos_grad");
 
         vec![grad]

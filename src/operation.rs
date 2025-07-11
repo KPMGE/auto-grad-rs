@@ -1,4 +1,4 @@
-use ndarray::Array2;
+use ndarray::{array, Array2};
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::tensor::Tensor;
@@ -18,8 +18,7 @@ pub trait ToArray2 {
 
 impl ToArray2 for f64 {
     fn to_array2(self) -> Array2<f64> {
-        // SAFETY: It's safe to assume this will always be correct, since we have only one element
-        Array2::from_shape_vec((1, 1), [self].to_vec()).unwrap()
+        array![[self]]
     }
 }
 

@@ -36,9 +36,9 @@ impl Sub {
 
 impl Operation for Sub {
     fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
-        let a = &inputs[0].borrow().arr();
-        let b = &inputs[1].borrow().arr();
-        let sub = a - b;
+        let a = &inputs[0];
+        let b = &inputs[1];
+        let sub = a.borrow().arr() - b.borrow().arr();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sub");
 
         let tensor = TensorBuilder::new(sub.clone())
@@ -55,10 +55,8 @@ impl Operation for Sub {
         back_grad: Rc<RefCell<Tensor>>,
         _args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
-        let back_grad_arr = back_grad.borrow().arr();
-
-        let grad_a = tensor!(back_grad_arr.clone(), name: "sub_grad");
-        let grad_b = tensor!(&back_grad_arr * -1.0, name: "sub_grad");
+        let grad_a = tensor!(back_grad.borrow().arr().clone(), name: "sub_grad");
+        let grad_b = tensor!(back_grad.borrow().arr() * -1.0, name: "sub_grad");
 
         vec![grad_a, grad_b]
     }
