@@ -12,6 +12,7 @@ macro_rules! add {
     ($val1:expr, $val2:expr) => {{
         use crate::functions::Add;
         use crate::operation::Operation;
+        use crate::tensor;
 
         let t1 = tensor!($val1.clone());
         let t2 = tensor!($val2.clone());

@@ -12,6 +12,7 @@ macro_rules! ln {
     ($val1:expr) => {{
         use crate::functions::Ln;
         use crate::operation::Operation;
+        use crate::tensor;
 
         let t = tensor!($val1.clone());
 

@@ -33,8 +33,13 @@ pub fn sin_regression() {
         .iter()
         .map(|xv| {
             let loss = sin_objective_fn(&[tensor!(*xv)]);
-            let arr = loss.borrow().arr();
-            let values = arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
+            let arr = loss.borrow();
+            let values = arr
+                .arr()
+                .rows()
+                .into_iter()
+                .flatten()
+                .collect::<Vec<&f64>>();
             *values[0]
         })
         .collect();
@@ -61,19 +66,32 @@ fn gradient_descent(
         let loss = objective_fn(inputs);
         loss.clone().borrow_mut().backward(None);
 
-        let arr = loss.borrow().arr();
-        let values = arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
+        let arr = loss.borrow();
+
+        let values = arr
+            .arr()
+            .rows()
+            .into_iter()
+            .flatten()
+            .collect::<Vec<&f64>>();
         loss_vals.push(*values[0]);
 
-        let arr2 = inputs[0].borrow().arr();
-        let values2 = arr2.rows().into_iter().flatten().collect::<Vec<&f64>>();
+        let arr2 = &inputs[0];
+        let borrow = arr2.borrow();
+        let values2 = borrow
+            .arr()
+            .rows()
+            .into_iter()
+            .flatten()
+            .collect::<Vec<&f64>>();
         input_vals.push(*values2[0]);
 
         for input in inputs {
-            let mut input_borrow = input.borrow_mut();
-            let input_grad_arr = input_borrow.grad().as_ref().unwrap().borrow().arr();
-            let new_arr_value = -lr * input_grad_arr + input_borrow.arr();
+            let borrow = input.borrow();
+            let input_grad_arr = borrow.grad().as_ref().unwrap().borrow();
+            let new_arr_value = -lr * input_grad_arr.arr() + borrow.arr();
 
+            let mut input_borrow = input.borrow_mut();
             input_borrow.set_arr(new_arr_value);
         }
     }

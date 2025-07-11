@@ -2,10 +2,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use ndarray::Array2;
 
+use crate::tensor;
 use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
-    tensor,
     tensor::{Tensor, TensorBuilder},
 };
 
@@ -14,6 +14,7 @@ macro_rules! sum {
     ($val1:expr) => {{
         use crate::functions::Sum;
         use crate::operation::Operation;
+        use crate::tensor;
 
         let t = tensor!($val1.clone());
 

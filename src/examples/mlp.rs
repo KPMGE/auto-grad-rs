@@ -61,8 +61,13 @@ impl SinRegressionMlp {
             .iter()
             .map(|x| {
                 let y = self.mlp.forward(tensor!(*x));
-                let arr = y.borrow().arr();
-                let values = arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
+                let arr = y.borrow();
+                let values = arr
+                    .arr()
+                    .rows()
+                    .into_iter()
+                    .flatten()
+                    .collect::<Vec<&f64>>();
                 *values[0]
             })
             .collect();
@@ -124,14 +129,20 @@ impl SinRegressionMlp {
             let loss = self.loss(&[]);
             loss.clone().borrow_mut().backward(None);
 
-            let arr = loss.borrow().arr();
-            let values = arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
+            let arr = loss.borrow();
+            let values = arr
+                .arr()
+                .rows()
+                .into_iter()
+                .flatten()
+                .collect::<Vec<&f64>>();
 
             for input in inputs {
-                let mut input_borrow = input.borrow_mut();
-                let input_grad_arr = input_borrow.grad().as_ref().unwrap().borrow().arr();
-                let new_arr_value = -lr * input_grad_arr + input_borrow.arr();
+                let borrow = input.borrow();
+                let input_grad_arr = borrow.grad().as_ref().unwrap().borrow();
+                let new_arr_value = -lr * input_grad_arr.arr() + borrow.arr();
 
+                let mut input_borrow = input.borrow_mut();
                 input_borrow.set_arr(new_arr_value);
             }
 

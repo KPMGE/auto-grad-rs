@@ -7,9 +7,6 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct TensorRef(Rc<RefCell<Tensor>>);
-
-#[derive(Debug)]
 pub struct Tensor {
     arr: Array2<f64>,
     parents: Vec<Rc<RefCell<Tensor>>>,
