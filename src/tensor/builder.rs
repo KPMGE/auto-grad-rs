@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use std::{cell::RefCell, rc::Rc, vec};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     operation::{Operation, ToArray2},
@@ -11,6 +11,7 @@ pub struct Tensor {
     arr: Array2<f64>,
     parents: Vec<Rc<RefCell<Tensor>>>,
     requires_grad: bool,
+    #[allow(dead_code)]
     name: Option<String>,
     operation: Option<Box<dyn Operation>>,
     grad: Option<Rc<RefCell<Tensor>>>,
@@ -61,6 +62,7 @@ impl Tensor {
         self.grad = Some(tensor!(ones_arr));
     }
 
+    #[allow(dead_code)]
     pub fn set_grad(&mut self, grad: Rc<RefCell<Tensor>>) {
         self.grad = Some(grad);
     }
@@ -104,6 +106,7 @@ impl TensorBuilder {
         self
     }
 
+    #[allow(dead_code)]
     pub fn arr<T: ToArray2>(mut self, arr: T) -> Self {
         self.arr = arr.to_array2();
         self

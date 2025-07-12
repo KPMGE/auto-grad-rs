@@ -1,6 +1,7 @@
-use std::{cell::RefCell, num, ops::Neg, process::exit, rc::Rc};
+#[allow(dead_code)]
+use std::{cell::RefCell, rc::Rc};
 
-use ndarray::{s, Array2};
+use ndarray::Array2;
 use rand::rng;
 use rand_distr::{Distribution, Normal};
 
@@ -31,7 +32,7 @@ impl MnistMlp {
         self.mlp.forward(x)
     }
 
-    fn cross_entropy_loss(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn cross_entropy_loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
         let mut total_loss = tensor!(0.0);
         let num_samples = self.images.shape()[0] as f64;
 
@@ -56,7 +57,7 @@ impl MnistMlp {
         prod!(total_loss, 1.0 / num_samples)
     }
 
-    fn loss(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
         let mut total_loss = tensor!(0.0);
         let num_samples = self.images.shape()[0] as f64;
 

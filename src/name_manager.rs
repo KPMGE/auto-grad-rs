@@ -19,6 +19,7 @@ impl NameManager {
         formatted_name
     }
 
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.count.clear();
     }

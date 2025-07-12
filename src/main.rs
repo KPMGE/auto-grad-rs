@@ -1,5 +1,5 @@
 use image::{GrayImage, Luma};
-use ndarray::{s, Array2};
+use ndarray::Array2;
 
 use crate::examples::MnistMlp;
 
@@ -11,12 +11,24 @@ mod tensor;
 
 use mnist::{Mnist, MnistBuilder};
 
-const EPOCHS: usize = 20;
-const LR: f64 = 1e-3;
+const EPOCHS: usize = 50;
+const LR: f64 = 1e-4;
+const TRAIN_SIZE: usize = 1000;
+const TEST_SIZE: usize = 10;
+
+fn save_img_to_disk(img_data: &[u8], name: &str) {
+    let mut img = GrayImage::new(28, 28);
+
+    for (i, pixel) in img_data.into_iter().enumerate() {
+        let x = (i % 28) as u32;
+        let y = (i / 28) as u32;
+        img.put_pixel(x, y, Luma([*pixel]));
+    }
+
+    img.save(name).expect("Failed to save image");
+}
 
 fn main() {
-    let train_size: usize = 1000;
-    // Deconstruct the returned Mnist struct.
     let Mnist {
         trn_img,
         trn_lbl,
@@ -25,80 +37,80 @@ fn main() {
         ..
     } = MnistBuilder::new()
         .label_format_digit()
-        .training_set_length(train_size as u32) // Use actual dataset size
-        .test_set_length(10_000) // Use actual dataset size
+        .training_set_length(TRAIN_SIZE as u32)
+        .test_set_length(TEST_SIZE as u32)
         .finalize();
 
-    // --- Reshape training images for MLP input ---
-    // The MnistBuilder returns trn_img as a flattened Vec<u8> of size 60_000 * 28 * 28.
-    // We want to reshape it to (60_000, 784) for MLP input.
     let train_images_flat: Array2<f64> = Array2::from_shape_vec(
-        (train_size, 28 * 28), // Reshape to (number_of_images, 784)
+        (TRAIN_SIZE, 28 * 28),
         trn_img
             .clone()
             .into_iter()
             .map(|x| x as f64 / 255.0)
-            .collect(), // Normalize pixels to 0.0-1.0
+            .collect(),
     )
     .expect("Error converting training images to flat Array2 struct");
 
-    println!(
-        "Training images flat shape: {:?}",
-        train_images_flat.shape()
-    );
+    let train_labels_one_hot: Array2<f64> = Array2::from_shape_fn((TRAIN_SIZE, 10), |(i, j)| {
+        if trn_lbl[i] as usize == j {
+            1.0
+        } else {
+            0.0
+        }
+    });
 
-    let train_labels_one_hot: Array2<f64> = Array2::from_shape_fn(
-        (train_size, 10), // Now (number_of_labels, number_of_classes)
-        |(i, j)| if trn_lbl[i] as usize == j { 1.0 } else { 0.0 },
-    );
-
-    let mut mnist_mlp = MnistMlp::new(
-        |x| tanh!(x),
-        train_images_flat.clone(),
-        train_labels_one_hot.clone(),
-    );
+    let mut mnist_mlp = MnistMlp::new(|x| relu!(x), train_images_flat, train_labels_one_hot);
 
     mnist_mlp.train(EPOCHS, LR);
 
-    // Each image is 28 * 28 = 784 pixels
-    let image_data = tst_img[0..784].to_vec();
+    let mut correct_guesses = 0;
 
-    // Create a new grayscale image (28x28)
-    let mut img = GrayImage::new(28, 28);
+    for i in 1..TEST_SIZE {
+        let test_image: Vec<f64> = tst_img[784 * (i - 1)..784 * i]
+            .iter()
+            .map(|x| *x as f64 / 255.0)
+            .collect();
+        let pred_logits = mnist_mlp.forward(tensor!(test_image));
+        let pred_probs = softmax!(pred_logits);
 
-    for (i, pixel) in image_data.into_iter().enumerate() {
-        let x = (i % 28) as u32;
-        let y = (i / 28) as u32;
-        img.put_pixel(x, y, Luma([pixel]));
+        let model_predicted_label = pred_probs
+            .borrow()
+            .arr()
+            .into_iter()
+            .enumerate()
+            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+            .map(|(idx, _)| idx)
+            .unwrap();
+
+        let correct_label = tst_lbl[i - 1];
+
+        if model_predicted_label as u8 == correct_label {
+            correct_guesses += 1;
+        }
+
+        let image_data = tst_img[784 * (i - 1)..784 * i].to_vec();
+        save_img_to_disk(&image_data, &format!("test_img_{}.png", i));
+
+        println!("CORRECT LABEL: {}", correct_label);
+
+        println!("MODEL PREDICTION: ");
+        for (idx, pred) in pred_probs
+            .borrow()
+            .arr()
+            .into_iter()
+            .collect::<Vec<&f64>>()
+            .iter()
+            .map(|x| *x * 100.0)
+            .collect::<Vec<f64>>()
+            .iter()
+            .enumerate()
+        {
+            println!("{}: {:.2}%", idx, pred);
+        }
     }
-
-    // Save to disk
-    img.save("mnist_sample.png").expect("Failed to save image");
-
-    // println!("LABEL: {:#?}", train_labels_one_hot.slice(s![12, ..]));
-
-    let image: Vec<f64> = tst_img[0..784].iter().map(|x| *x as f64 / 255.0).collect();
-
-    let pred = mnist_mlp.forward(tensor!(image));
-    let pred_soft = softmax!(pred);
 
     println!(
-        "PREDICTION LOGITS: {:#?}",
-        pred.borrow().arr().into_iter().collect::<Vec<&f64>>()
+        "ACCURACY: {:.2}%",
+        (correct_guesses as f64 / TEST_SIZE as f64) * 100.0
     );
-
-    println!("MODEL PREDICTION: ");
-    for (idx, pred) in pred_soft
-        .borrow()
-        .arr()
-        .into_iter()
-        .collect::<Vec<&f64>>()
-        .iter()
-        .map(|x| *x * 100.0)
-        .collect::<Vec<f64>>()
-        .iter()
-        .enumerate()
-    {
-        println!("{}: {:.2}%", idx, pred);
-    }
 }

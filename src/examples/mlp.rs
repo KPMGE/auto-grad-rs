@@ -106,7 +106,7 @@ impl SinRegressionMlp {
         Page::single(&view).save(file_path).unwrap();
     }
 
-    fn loss(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
         let mut total_loss = tensor!(0.0);
         let xs_len = self.xs.len() as f64;
 

@@ -58,7 +58,8 @@ impl Operation for Sum {
         args: &[Rc<RefCell<Tensor>>],
     ) -> Vec<Rc<RefCell<Tensor>>> {
         let input_dim = args[0].borrow().arr().raw_dim();
-        let grad_arr = Array2::from_elem(input_dim, 1.0);
+        let ones_arr = Array2::from_elem(input_dim, 1.0);
+        let grad_arr = ones_arr * back_grad.borrow_mut().arr();
         let grad = tensor!(grad_arr, name: "sum_grad");
 
         vec![grad]

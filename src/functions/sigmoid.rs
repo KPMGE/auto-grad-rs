@@ -1,7 +1,5 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ndarray::Array2;
-
 use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
