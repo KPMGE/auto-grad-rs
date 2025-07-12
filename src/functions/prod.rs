@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -36,10 +36,10 @@ impl Prod {
 }
 
 impl Operation for Prod {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
         let b = &inputs[1];
-        let product = a.borrow().arr() * b.borrow().arr();
+        let product = &a.borrow().arr * &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("prod");
 
         let tensor = TensorBuilder::new(product.clone())
@@ -48,19 +48,15 @@ impl Operation for Prod {
             .operation(Box::new(Prod::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
         let b = &args[1];
 
-        let grad_a = tensor!(back_grad.borrow().arr() * b.borrow().arr(), name: "prod_grad");
-        let grad_b = tensor!(back_grad.borrow().arr() * a.borrow().arr(), name: "prod_grad");
+        let grad_a = tensor!(&back_grad.borrow().arr * &b.borrow().arr, name: "prod_grad");
+        let grad_b = tensor!(&back_grad.borrow().arr * &a.borrow().arr, name: "prod_grad");
 
         vec![grad_a, grad_b]
     }

@@ -1,7 +1,7 @@
-
 mod add;
 mod cos;
 mod exp;
+mod ln;
 mod matmul;
 mod prod;
 mod relu;
@@ -12,7 +12,6 @@ mod square;
 mod sub;
 mod sum;
 mod tanh;
-mod ln;
 
 #[allow(unused_imports)]
 pub use add::*;
@@ -20,6 +19,8 @@ pub use add::*;
 pub use cos::*;
 #[allow(unused_imports)]
 pub use exp::*;
+#[allow(unused_imports)]
+pub use ln::*;
 #[allow(unused_imports)]
 pub use matmul::*;
 #[allow(unused_imports)]
@@ -40,5 +41,3 @@ pub use sub::*;
 pub use sum::*;
 #[allow(unused_imports)]
 pub use tanh::*;
-#[allow(unused_imports)]
-pub use ln::*;

@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -34,9 +34,9 @@ impl Cos {
 }
 
 impl Operation for Cos {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
-        let cos_arr = a.borrow().arr().cos();
+        let cos_arr = a.borrow().arr.cos();
         let op_name = self.name_manager.clone().borrow_mut().new_name("cos");
 
         let tensor = TensorBuilder::new(cos_arr)
@@ -45,16 +45,12 @@ impl Operation for Cos {
             .operation(Box::new(Cos::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
-        let grad_arr = back_grad.borrow().arr() * -a.borrow().arr().sin();
+        let grad_arr = back_grad.borrow().arr.clone() * -a.borrow().arr.sin();
         let grad = tensor!(grad_arr, name: "cos_grad");
 
         vec![grad]

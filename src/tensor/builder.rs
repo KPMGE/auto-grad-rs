@@ -1,59 +1,83 @@
 use ndarray::Array2;
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    rc::Rc,
+};
 
 use crate::{
     operation::{Operation, ToArray2},
     tensor,
 };
 
+#[derive(Debug, Clone)]
+pub struct TensorRef(Rc<RefCell<Tensor>>);
+
+impl TensorRef {
+    pub fn new(tensor: Tensor) -> Self {
+        TensorRef(Rc::new(RefCell::new(tensor)))
+    }
+
+    pub fn borrow(&self) -> Ref<'_, Tensor> {
+        self.0.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Tensor> {
+        self.0.borrow_mut()
+    }
+
+    pub fn try_borrow(&self) -> Result<Ref<'_, Tensor>, std::cell::BorrowError> {
+        self.0.try_borrow()
+    }
+
+    pub fn try_borrow_mut(&self) -> Result<RefMut<'_, Tensor>, std::cell::BorrowMutError> {
+        self.0.try_borrow_mut()
+    }
+
+    pub fn try_unwrap(self) -> Result<Tensor, Self> {
+        match Rc::try_unwrap(self.0) {
+            Ok(ref_cell) => Ok(ref_cell.into_inner()),
+            Err(rc) => Err(TensorRef(rc)),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Tensor {
-    arr: Array2<f64>,
-    parents: Vec<Rc<RefCell<Tensor>>>,
-    requires_grad: bool,
+    pub arr: Array2<f64>,
+    pub parents: Vec<TensorRef>,
+    pub requires_grad: bool,
     #[allow(dead_code)]
-    name: Option<String>,
-    operation: Option<Box<dyn Operation>>,
-    grad: Option<Rc<RefCell<Tensor>>>,
+    pub name: Option<String>,
+    pub operation: Option<Box<dyn Operation>>,
+    pub grad: Option<TensorRef>,
 }
 
 impl Tensor {
-    pub fn arr(&self) -> &Array2<f64> {
-        &self.arr
-    }
-
-    pub fn backward(&mut self, mut my_grad: Option<Rc<RefCell<Tensor>>>) {
+    pub fn backward(&mut self, my_grad_input: Option<TensorRef>) {
         if !self.requires_grad {
             return;
         }
 
-        if my_grad.is_none() {
-            let ones_arr: Array2<f64> = Array2::from_elem(self.arr.raw_dim(), 1.0);
-            let ones_tensor = Rc::new(RefCell::new(TensorBuilder::new(ones_arr).build()));
-            my_grad = Some(ones_tensor.clone());
-        }
+        let my_grad: TensorRef = if let Some(g) = my_grad_input {
+            g
+        } else {
+            tensor!(Array2::ones(self.arr.raw_dim()))
+        };
 
         if self.grad.is_none() {
-            self.grad = Some(my_grad.clone().unwrap());
+            self.grad = Some(my_grad.clone());
         } else {
-            let acc = self.grad.as_ref().unwrap().borrow().arr()
-                + my_grad.as_ref().unwrap().as_ref().borrow().arr();
-            let new_grad = tensor!(acc, requires_grad: false);
-
-            self.grad = Some(new_grad);
+            let mut existing_grad_tensor = self.grad.as_ref().unwrap().borrow_mut();
+            existing_grad_tensor.arr += &my_grad.borrow().arr;
         }
 
         if let Some(operation) = &self.operation {
-            let parent_grads = operation.grad(my_grad.unwrap(), &self.parents);
+            let parent_grads = operation.grad(my_grad, &self.parents);
 
             for (parent, parent_grad) in self.parents.iter().zip(parent_grads) {
                 parent.borrow_mut().backward(Some(parent_grad));
             }
         }
-    }
-
-    pub fn grad(&self) -> &Option<Rc<RefCell<Tensor>>> {
-        &self.grad
     }
 
     pub fn zero_grad(&mut self) {
@@ -66,11 +90,6 @@ impl Tensor {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn set_grad(&mut self, grad: Rc<RefCell<Tensor>>) {
-        self.grad = Some(grad);
-    }
-
     pub fn set_arr(&mut self, val: impl ToArray2) {
         self.arr = val.to_array2();
     }
@@ -80,7 +99,7 @@ pub struct TensorBuilder {
     name: Option<String>,
     operation: Option<Box<dyn Operation>>,
     arr: Array2<f64>,
-    parents: Vec<Rc<RefCell<Tensor>>>,
+    parents: Vec<TensorRef>,
     requires_grad: bool,
 }
 
@@ -100,7 +119,7 @@ impl TensorBuilder {
         self
     }
 
-    pub fn parents(mut self, parents: Vec<Rc<RefCell<Tensor>>>) -> Self {
+    pub fn parents(mut self, parents: Vec<TensorRef>) -> Self {
         self.parents = parents;
         self
     }
@@ -135,6 +154,6 @@ impl TensorBuilder {
 
 impl std::fmt::Display for Tensor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.arr())
+        writeln!(f, "{}", self.arr)
     }
 }

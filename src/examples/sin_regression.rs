@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 const EPOCHS: usize = 10;
 const LR: f64 = 0.2;
 
@@ -9,9 +7,9 @@ use plotlib::style::{LineStyle, PointStyle};
 use plotlib::view::ContinuousView;
 
 use crate::{add, prod, tensor};
-use crate::{sin, tensor::Tensor};
+use crate::{sin, tensor::TensorRef};
 
-fn sin_objective_fn(input: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+fn sin_objective_fn(input: &[TensorRef]) -> TensorRef {
     let x = &input[0];
     sin!(add!(prod!(2.0, x), 0.5))
 }
@@ -34,12 +32,7 @@ pub fn sin_regression() {
         .map(|xv| {
             let loss = sin_objective_fn(&[tensor!(*xv)]);
             let arr = loss.borrow();
-            let values = arr
-                .arr()
-                .rows()
-                .into_iter()
-                .flatten()
-                .collect::<Vec<&f64>>();
+            let values = arr.arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
             *values[0]
         })
         .collect();
@@ -47,13 +40,13 @@ pub fn sin_regression() {
     plot_fn(&original_x, &original_y, &input_values, &loss_values);
 }
 
-type ObjectiveFn = fn(&[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>>;
+type ObjectiveFn = fn(&[TensorRef]) -> TensorRef;
 
 fn gradient_descent(
     objective_fn: ObjectiveFn,
     n_epochs: usize,
     lr: f64,
-    inputs: &[Rc<RefCell<Tensor>>],
+    inputs: &[TensorRef],
 ) -> (Vec<f64>, Vec<f64>) {
     let mut loss_vals = Vec::new();
     let mut input_vals = Vec::new();
@@ -68,18 +61,13 @@ fn gradient_descent(
 
         let arr = loss.borrow();
 
-        let values = arr
-            .arr()
-            .rows()
-            .into_iter()
-            .flatten()
-            .collect::<Vec<&f64>>();
+        let values = arr.arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
         loss_vals.push(*values[0]);
 
         let arr2 = &inputs[0];
         let borrow = arr2.borrow();
         let values2 = borrow
-            .arr()
+            .arr
             .rows()
             .into_iter()
             .flatten()
@@ -88,8 +76,8 @@ fn gradient_descent(
 
         for input in inputs {
             let borrow = input.borrow();
-            let input_grad_arr = borrow.grad().as_ref().unwrap().borrow();
-            let new_arr_value = -lr * input_grad_arr.arr() + borrow.arr();
+            let input_grad_arr = borrow.grad.as_ref().unwrap().borrow();
+            let new_arr_value = -lr * &input_grad_arr.arr + &borrow.arr;
 
             let mut input_borrow = input.borrow_mut();
             input_borrow.set_arr(new_arr_value);

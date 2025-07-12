@@ -1,4 +1,4 @@
-use std::{cell::RefCell, iter::zip, rc::Rc, vec};
+use std::iter::zip;
 
 use ndarray::Array2;
 use plotlib::{
@@ -10,7 +10,7 @@ use plotlib::{
 use rand::rng;
 use rand_distr::{Distribution, Normal};
 
-use crate::{add, examples::float_range, matmul, prod, sub, tensor::Tensor};
+use crate::{add, examples::float_range, matmul, prod, sub, tensor::TensorRef};
 use crate::{square, tensor};
 
 pub struct SinRegressionMlp {
@@ -62,12 +62,7 @@ impl SinRegressionMlp {
             .map(|x| {
                 let y = self.mlp.forward(tensor!(*x));
                 let arr = y.borrow();
-                let values = arr
-                    .arr()
-                    .rows()
-                    .into_iter()
-                    .flatten()
-                    .collect::<Vec<&f64>>();
+                let values = arr.arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
                 *values[0]
             })
             .collect();
@@ -106,7 +101,7 @@ impl SinRegressionMlp {
         Page::single(&view).save(file_path).unwrap();
     }
 
-    fn loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn loss(&self, _inputs: &[TensorRef]) -> TensorRef {
         let mut total_loss = tensor!(0.0);
         let xs_len = self.xs.len() as f64;
 
@@ -120,7 +115,7 @@ impl SinRegressionMlp {
         total_loss
     }
 
-    fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[Rc<RefCell<Tensor>>]) {
+    fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[TensorRef]) {
         for _ in 0..n_epochs {
             for input in inputs {
                 input.borrow_mut().zero_grad();
@@ -130,17 +125,12 @@ impl SinRegressionMlp {
             loss.clone().borrow_mut().backward(None);
 
             let arr = loss.borrow();
-            let values = arr
-                .arr()
-                .rows()
-                .into_iter()
-                .flatten()
-                .collect::<Vec<&f64>>();
+            let values = arr.arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
 
             for input in inputs {
                 let borrow = input.borrow();
-                let input_grad_arr = borrow.grad().as_ref().unwrap().borrow();
-                let new_arr_value = -lr * input_grad_arr.arr() + borrow.arr();
+                let input_grad_arr = borrow.grad.as_ref().unwrap().borrow();
+                let new_arr_value = -lr * &input_grad_arr.arr + &borrow.arr;
 
                 let mut input_borrow = input.borrow_mut();
                 input_borrow.set_arr(new_arr_value);
@@ -151,15 +141,15 @@ impl SinRegressionMlp {
     }
 }
 
-type ActivationFn = fn(Rc<RefCell<Tensor>>) -> Rc<RefCell<Tensor>>;
+type ActivationFn = fn(TensorRef) -> TensorRef;
 pub struct Mlp {
     activation_fn: ActivationFn,
-    w0: Rc<RefCell<Tensor>>,
-    b0: Rc<RefCell<Tensor>>,
-    w1: Rc<RefCell<Tensor>>,
-    b1: Rc<RefCell<Tensor>>,
-    w2: Rc<RefCell<Tensor>>,
-    b2: Rc<RefCell<Tensor>>,
+    w0: TensorRef,
+    b0: TensorRef,
+    w1: TensorRef,
+    b1: TensorRef,
+    w2: TensorRef,
+    b2: TensorRef,
 }
 
 impl Mlp {
@@ -182,7 +172,7 @@ impl Mlp {
         }
     }
 
-    fn forward(&self, x: Rc<RefCell<Tensor>>) -> Rc<RefCell<Tensor>> {
+    fn forward(&self, x: TensorRef) -> TensorRef {
         let z0 = add!(matmul!(self.w0, x), self.b0);
         let h0 = (self.activation_fn)(z0);
 
@@ -193,7 +183,7 @@ impl Mlp {
         y
     }
 
-    fn parameters(&self) -> Vec<Rc<RefCell<Tensor>>> {
+    fn parameters(&self) -> Vec<TensorRef> {
         vec![
             self.w0.clone(),
             self.b0.clone(),

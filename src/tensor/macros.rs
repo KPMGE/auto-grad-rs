@@ -1,29 +1,34 @@
 use crate::{
     operation::ToArray2,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{Tensor, TensorBuilder, TensorRef},
 };
-use std::{cell::RefCell, rc::Rc};
 
-pub trait ToTensor {
-    fn to_tensor(self) -> Rc<RefCell<Tensor>>;
-}
-
-impl ToTensor for Rc<RefCell<Tensor>> {
-    fn to_tensor(self) -> Rc<RefCell<Tensor>> {
-        self.clone()
+impl ToTensor for Tensor {
+    fn to_tensor(self) -> TensorRef {
+        TensorRef::new(self)
     }
 }
 
-impl<'a> ToTensor for &'a Rc<RefCell<Tensor>> {
-    fn to_tensor(self) -> Rc<RefCell<Tensor>> {
+pub trait ToTensor {
+    fn to_tensor(self) -> TensorRef;
+}
+
+impl ToTensor for TensorRef {
+    fn to_tensor(self) -> TensorRef {
+        self
+    }
+}
+
+impl<'a> ToTensor for &'a TensorRef {
+    fn to_tensor(self) -> TensorRef {
         self.clone()
     }
 }
 
 impl<T: ToArray2> ToTensor for T {
-    fn to_tensor(self) -> Rc<RefCell<Tensor>> {
+    fn to_tensor(self) -> TensorRef {
         let tensor = TensorBuilder::new(self.to_array2()).build();
-        Rc::new(RefCell::new(tensor))
+        TensorRef::new(tensor)
     }
 }
 
@@ -31,10 +36,13 @@ impl<T: ToArray2> ToTensor for T {
 macro_rules! tensor {
     ($val:expr) => {{
         use $crate::tensor::ToTensor;
+
         $val.to_tensor()
     }};
 
     ($val:expr $(, name: $name:expr)? $(, requires_grad: $grad:expr)? $(, parents: $parents:expr)? ) => {{
+        use $crate::tensor::TensorRef;
+
         let mut builder = TensorBuilder::new($val);
         $(
             builder = builder.name($name);
@@ -45,6 +53,6 @@ macro_rules! tensor {
         $(
             builder = builder.parents($parents);
         )?
-        Rc::new(RefCell::new(builder.build()))
+        TensorRef::new(builder.build())
     }};
 }

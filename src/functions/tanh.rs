@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -34,10 +34,10 @@ impl Tanh {
 }
 
 impl Operation for Tanh {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
 
-        let tanh = a.borrow().arr().mapv(f64::tanh);
+        let tanh = a.borrow().arr.mapv(f64::tanh);
         let op_name = self.name_manager.clone().borrow_mut().new_name("tanh");
 
         let tensor = TensorBuilder::new(tanh)
@@ -46,19 +46,15 @@ impl Operation for Tanh {
             .operation(Box::new(Tanh::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
-        let tanh_squared = a.borrow().arr().mapv(|v| v.tanh() * v.tanh());
+        let tanh_squared = a.borrow().arr.mapv(|v| v.tanh() * v.tanh());
 
         let grad_arr = 1.0 - tanh_squared;
-        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "tanh_grad");
+        let grad = tensor!(&back_grad.borrow().arr * grad_arr, name: "tanh_grad");
 
         vec![grad]
     }

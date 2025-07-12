@@ -1,15 +1,11 @@
 use ndarray::{array, Array2};
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
-use crate::tensor::Tensor;
+use crate::tensor::TensorRef;
 
 pub trait Operation: Debug {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>>;
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>>;
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef;
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef>;
 }
 
 pub trait ToArray2 {

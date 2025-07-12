@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -36,10 +36,10 @@ impl Add {
 }
 
 impl Operation for Add {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
         let b = &inputs[1];
-        let sum = a.borrow().arr() + b.borrow().arr();
+        let sum = &a.borrow().arr + &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("add");
 
         let tensor = TensorBuilder::new(sum.clone())
@@ -48,15 +48,11 @@ impl Operation for Add {
             .operation(Box::new(Add::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        _args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
-        let back_grad_arr = back_grad.borrow().arr().clone();
+    fn grad(&self, back_grad: TensorRef, _args: &[TensorRef]) -> Vec<TensorRef> {
+        let back_grad_arr = back_grad.borrow().arr.clone();
         let grad = tensor!(back_grad_arr, name: "add_grad");
 
         vec![grad.clone(), grad]

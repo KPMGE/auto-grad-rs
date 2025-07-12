@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -50,10 +50,10 @@ impl ReLU {
 }
 
 impl Operation for ReLU {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
 
-        let relu = a.borrow().arr().mapv(|x| ReLU::apply(x));
+        let relu = a.borrow().arr.mapv(|x| ReLU::apply(x));
         let op_name = self.name_manager.clone().borrow_mut().new_name("relu");
 
         let tensor = TensorBuilder::new(relu)
@@ -62,16 +62,12 @@ impl Operation for ReLU {
             .operation(Box::new(ReLU::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
-        let relu_grad = a.borrow().arr().mapv(|x| ReLU::grad(x)) * back_grad.borrow().arr();
+        let relu_grad = a.borrow().arr.mapv(|x| ReLU::grad(x)) * &back_grad.borrow().arr;
         let grad = tensor!(relu_grad, name: "relu_grad");
 
         vec![grad]

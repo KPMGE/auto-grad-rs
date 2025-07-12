@@ -6,7 +6,7 @@ use crate::tensor;
 use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -59,10 +59,10 @@ impl Softmax {
 }
 
 impl Operation for Softmax {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
 
-        let softmax = Softmax::apply(a.borrow().arr());
+        let softmax = Softmax::apply(&a.borrow().arr);
         let op_name = self.name_manager.clone().borrow_mut().new_name("softmax");
 
         let tensor = TensorBuilder::new(softmax)
@@ -71,22 +71,17 @@ impl Operation for Softmax {
             .operation(Box::new(Softmax::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let x = &args[0];
-        let y = Softmax::apply(x.borrow().arr());
+        let y = Softmax::apply(&x.borrow().arr);
 
-        let xs_flat: Vec<f64> = x.borrow().arr().iter().map(|x| *x).collect();
+        let xs_flat: Vec<f64> = x.borrow().arr.iter().map(|x| *x).collect();
         let ys_flat: Vec<f64> = y.iter().map(|y| *y).collect();
         let j = Self::jacobian(&xs_flat, &ys_flat);
-
-        let grad = j.t().dot(back_grad.borrow().arr());
+        let grad = j.t().clone().dot(&back_grad.borrow().arr);
 
         vec![tensor!(grad, name: "softmax_grad")]
     }

@@ -1,11 +1,9 @@
 #[allow(dead_code)]
-use std::{cell::RefCell, rc::Rc};
-
 use ndarray::Array2;
 use rand::rng;
 use rand_distr::{Distribution, Normal};
 
-use crate::{add, ln, prod, softmax, sum, tensor::Tensor};
+use crate::{add, ln, prod, softmax, sum, tensor::TensorRef};
 use crate::{matmul, square, sub, tensor};
 
 pub struct MnistMlp {
@@ -28,11 +26,11 @@ impl MnistMlp {
         self.gradient_descent(epochs, lr, &params);
     }
 
-    pub fn forward(&self, x: Rc<RefCell<Tensor>>) -> Rc<RefCell<Tensor>> {
+    pub fn forward(&self, x: TensorRef) -> TensorRef {
         self.mlp.forward(x)
     }
 
-    fn cross_entropy_loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn cross_entropy_loss(&self, _inputs: &[TensorRef]) -> TensorRef {
         let mut total_loss = tensor!(0.0);
         let num_samples = self.images.shape()[0] as f64;
 
@@ -57,7 +55,7 @@ impl MnistMlp {
         prod!(total_loss, 1.0 / num_samples)
     }
 
-    fn loss(&self, _inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn loss(&self, _inputs: &[TensorRef]) -> TensorRef {
         let mut total_loss = tensor!(0.0);
         let num_samples = self.images.shape()[0] as f64;
 
@@ -78,7 +76,7 @@ impl MnistMlp {
         sum!(total_loss)
     }
 
-    fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[Rc<RefCell<Tensor>>]) {
+    fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[TensorRef]) {
         for epoch in 0..n_epochs {
             for input in inputs {
                 input.borrow_mut().zero_grad();
@@ -87,15 +85,15 @@ impl MnistMlp {
             let loss = self.cross_entropy_loss(&[]);
             loss.clone().borrow_mut().backward(None);
 
-            let current_loss: Vec<f64> = loss.borrow().arr().iter().map(|x| *x).collect();
+            let current_loss: Vec<f64> = loss.borrow().arr.iter().map(|x| *x).collect();
             assert!(current_loss.len() == 1, "loss value must be a scalar!");
 
             let current_loss_value = current_loss[0];
 
             for input in inputs {
                 let mut input_borrow = input.borrow_mut();
-                if let Some(grad_tensor_rc) = input_borrow.grad() {
-                    let new_arr_value = input_borrow.arr() - (lr * grad_tensor_rc.borrow().arr());
+                if let Some(grad_tensor_rc) = &input_borrow.grad {
+                    let new_arr_value = &input_borrow.arr - (lr * &grad_tensor_rc.borrow().arr);
 
                     input_borrow.set_arr(new_arr_value);
                 } else {
@@ -108,15 +106,15 @@ impl MnistMlp {
     }
 }
 
-type ActivationFn = fn(Rc<RefCell<Tensor>>) -> Rc<RefCell<Tensor>>;
+type ActivationFn = fn(TensorRef) -> TensorRef;
 pub struct Mlp {
     activation_fn: ActivationFn,
-    w0: Rc<RefCell<Tensor>>,
-    b0: Rc<RefCell<Tensor>>,
-    w1: Rc<RefCell<Tensor>>,
-    b1: Rc<RefCell<Tensor>>,
-    w2: Rc<RefCell<Tensor>>,
-    b2: Rc<RefCell<Tensor>>,
+    w0: TensorRef,
+    b0: TensorRef,
+    w1: TensorRef,
+    b1: TensorRef,
+    w2: TensorRef,
+    b2: TensorRef,
 }
 
 impl Mlp {
@@ -146,7 +144,7 @@ impl Mlp {
         }
     }
 
-    fn forward(&self, x: Rc<RefCell<Tensor>>) -> Rc<RefCell<Tensor>> {
+    fn forward(&self, x: TensorRef) -> TensorRef {
         let z0 = add!(matmul!(self.w0, x), self.b0);
         let h0 = (self.activation_fn)(z0);
 
@@ -157,7 +155,7 @@ impl Mlp {
         y
     }
 
-    fn parameters(&self) -> Vec<Rc<RefCell<Tensor>>> {
+    fn parameters(&self) -> Vec<TensorRef> {
         vec![
             self.w0.clone(),
             self.b0.clone(),

@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -40,10 +40,10 @@ impl Sigmoid {
 }
 
 impl Operation for Sigmoid {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
 
-        let sigmoid = a.borrow().arr().mapv(|v| self.sigmoid(v));
+        let sigmoid = a.borrow().arr.mapv(|v| self.sigmoid(v));
         let op_name = self.name_manager.clone().borrow_mut().new_name("sigmoid");
 
         let tensor = TensorBuilder::new(sigmoid)
@@ -52,19 +52,15 @@ impl Operation for Sigmoid {
             .operation(Box::new(Sigmoid::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
-        let sigmod_result_arr = a.borrow().arr().mapv(|v| self.sigmoid(v));
+        let sigmod_result_arr = a.borrow().arr.mapv(|v| self.sigmoid(v));
 
         let grad_arr = sigmod_result_arr.clone() * (1.0 - sigmod_result_arr);
-        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "sigmoid_grad");
+        let grad = tensor!(&back_grad.borrow().arr * grad_arr, name: "sigmoid_grad");
 
         vec![grad]
     }

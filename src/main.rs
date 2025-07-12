@@ -11,10 +11,10 @@ mod tensor;
 
 use mnist::{Mnist, MnistBuilder};
 
-const EPOCHS: usize = 50;
-const LR: f64 = 1e-4;
-const TRAIN_SIZE: usize = 1000;
-const TEST_SIZE: usize = 10;
+const EPOCHS: usize = 500;
+const LR: f64 = 1e-1;
+const TRAIN_SIZE: usize = 5000;
+const TEST_SIZE: usize = 1000;
 
 fn save_img_to_disk(img_data: &[u8], name: &str) {
     let mut img = GrayImage::new(28, 28);
@@ -75,8 +75,8 @@ fn main() {
 
         let model_predicted_label = pred_probs
             .borrow()
-            .arr()
-            .into_iter()
+            .arr
+            .iter()
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
             .map(|(idx, _)| idx)
@@ -96,10 +96,10 @@ fn main() {
         println!("MODEL PREDICTION: ");
         for (idx, pred) in pred_probs
             .borrow()
-            .arr()
-            .into_iter()
-            .collect::<Vec<&f64>>()
+            .arr
             .iter()
+            .collect::<Vec<&f64>>()
+            .into_iter()
             .map(|x| *x * 100.0)
             .collect::<Vec<f64>>()
             .iter()

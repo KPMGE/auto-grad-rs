@@ -4,7 +4,7 @@ use crate::{
     name_manager::{NameManager, NAME_MANAGER},
     operation::Operation,
     tensor,
-    tensor::{Tensor, TensorBuilder},
+    tensor::{TensorBuilder, TensorRef},
 };
 
 #[macro_export]
@@ -35,10 +35,10 @@ impl Ln {
 }
 
 impl Operation for Ln {
-    fn apply(&self, inputs: &[Rc<RefCell<Tensor>>]) -> Rc<RefCell<Tensor>> {
+    fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
 
-        let lns = a.borrow().arr().mapv(|v| v.ln());
+        let lns = a.borrow().arr.mapv(|v| v.ln());
         let op_name = self.name_manager.clone().borrow_mut().new_name("ln");
 
         let tensor = TensorBuilder::new(lns)
@@ -47,17 +47,13 @@ impl Operation for Ln {
             .operation(Box::new(Ln::new()))
             .build();
 
-        Rc::new(RefCell::new(tensor))
+        tensor!(tensor)
     }
 
-    fn grad(
-        &self,
-        back_grad: Rc<RefCell<Tensor>>,
-        args: &[Rc<RefCell<Tensor>>],
-    ) -> Vec<Rc<RefCell<Tensor>>> {
+    fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
         let a = &args[0];
-        let grad_arr = a.borrow().arr().mapv(|x| 1.0 / x);
-        let grad = tensor!(back_grad.borrow().arr() * grad_arr, name: "ln_grad");
+        let grad_arr = a.borrow().arr.mapv(|x| 1.0 / x);
+        let grad = tensor!(back_grad.borrow().arr.clone() * grad_arr, name: "ln_grad");
 
         vec![grad]
     }
