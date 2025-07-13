@@ -10,8 +10,11 @@ use plotlib::{
 use rand::rng;
 use rand_distr::{Distribution, Normal};
 
-use crate::{add, examples::float_range, matmul, prod, sub, tensor::TensorRef};
+use crate::{add, examples::float_range, matmul, prod, relu, sub, tensor::TensorRef};
 use crate::{square, tensor};
+
+const EPOCHS: usize = 500;
+const LR: f64 = 1e-1;
 
 pub struct SinRegressionMlp {
     xs: Vec<f64>,
@@ -20,16 +23,17 @@ pub struct SinRegressionMlp {
 }
 
 impl SinRegressionMlp {
-    pub fn new(mlp: Mlp) -> Self {
+    pub fn new(activation_fn: ActivationFn) -> Self {
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut rng = rng();
 
         let xs = float_range(0.0, 6.0, 0.05);
-
         let ys: Vec<f64> = xs
             .iter()
             .map(|x| x.sin() + normal.sample(&mut rng) * 0.2)
             .collect();
+
+        let mlp = Mlp::new(activation_fn);
 
         Self { mlp, xs, ys }
     }
@@ -116,7 +120,7 @@ impl SinRegressionMlp {
     }
 
     fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[TensorRef]) {
-        for _ in 0..n_epochs {
+        for epoch in 0..n_epochs {
             for input in inputs {
                 input.borrow_mut().zero_grad();
             }
@@ -124,25 +128,29 @@ impl SinRegressionMlp {
             let loss = self.loss(&[]);
             loss.clone().borrow_mut().backward(None);
 
-            let arr = loss.borrow();
-            let values = arr.arr.rows().into_iter().flatten().collect::<Vec<&f64>>();
+            let current_loss: Vec<f64> = loss.borrow().arr.iter().map(|x| *x).collect();
+            assert!(current_loss.len() == 1, "loss value must be a scalar!");
+
+            let current_loss_value = current_loss[0];
 
             for input in inputs {
-                let borrow = input.borrow();
-                let input_grad_arr = borrow.grad.as_ref().unwrap().borrow();
-                let new_arr_value = -lr * &input_grad_arr.arr + &borrow.arr;
-
                 let mut input_borrow = input.borrow_mut();
-                input_borrow.set_arr(new_arr_value);
+                if let Some(grad_tensor_rc) = &input_borrow.grad {
+                    let new_arr_value = &input_borrow.arr - (lr * &grad_tensor_rc.borrow().arr);
+
+                    input_borrow.set_arr(new_arr_value);
+                } else {
+                    println!("Warning: Parameter did not receive a gradient.");
+                }
             }
 
-            println!("LOSS: {:#?}", values[0]);
+            println!("Epoch {}: LOSS: {:.6}", epoch + 1, current_loss_value);
         }
     }
 }
 
 type ActivationFn = fn(TensorRef) -> TensorRef;
-pub struct Mlp {
+struct Mlp {
     activation_fn: ActivationFn,
     w0: TensorRef,
     b0: TensorRef,
@@ -204,4 +212,10 @@ impl Mlp {
 
         Array2::from_shape_vec((rows, cols), data).unwrap()
     }
+}
+
+pub fn perform_sin_regression_mlp() {
+    let mut sin_reg_mlp = SinRegressionMlp::new(|x| relu!(x));
+    sin_reg_mlp.train(EPOCHS, LR);
+    sin_reg_mlp.plot("sin_regression.svg");
 }
