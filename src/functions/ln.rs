@@ -41,13 +41,7 @@ impl Operation for Ln {
         let lns = a.borrow().arr.mapv(|v| v.ln());
         let op_name = self.name_manager.clone().borrow_mut().new_name("ln");
 
-        let tensor = TensorBuilder::new(lns)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Ln::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(lns, name: &op_name, parents: vec![a.clone()], operation: Box::new(Ln::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

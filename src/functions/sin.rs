@@ -40,13 +40,7 @@ impl Operation for Sin {
         let sin = a.borrow().arr.sin();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sin");
 
-        let tensor = TensorBuilder::new(sin)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Sin::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(sin, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sin::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

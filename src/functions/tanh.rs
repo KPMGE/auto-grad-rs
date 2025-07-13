@@ -40,13 +40,7 @@ impl Operation for Tanh {
         let tanh = a.borrow().arr.mapv(f64::tanh);
         let op_name = self.name_manager.clone().borrow_mut().new_name("tanh");
 
-        let tensor = TensorBuilder::new(tanh)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Tanh::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(tanh, name: &op_name, parents: vec![a.clone()], operation: Box::new(Tanh::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

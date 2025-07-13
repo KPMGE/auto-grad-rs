@@ -40,13 +40,7 @@ impl Operation for Exp {
         let exp = a.borrow().arr.mapv(|v| v.exp());
         let op_name = self.name_manager.clone().borrow_mut().new_name("exp");
 
-        let tensor = TensorBuilder::new(exp)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Exp::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(exp, name: &op_name, parents: vec![a.clone()], operation: Box::new(Exp::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

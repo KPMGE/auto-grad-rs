@@ -48,16 +48,9 @@ impl Operation for MatMul {
         let b = &inputs[1];
 
         let mul = a.borrow().arr.clone().dot(&b.borrow().arr);
-
         let op_name = self.name_manager.clone().borrow_mut().new_name("matmul");
 
-        let tensor = TensorBuilder::new(mul.clone())
-            .name(&op_name)
-            .parents(vec![inputs[0].clone(), inputs[1].clone()])
-            .operation(Box::new(MatMul::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(mul, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(MatMul::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

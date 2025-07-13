@@ -40,13 +40,7 @@ impl Operation for Square {
         let square = a.borrow().arr.mapv(|v| v.powf(2.0));
         let op_name = self.name_manager.clone().borrow_mut().new_name("square");
 
-        let tensor = TensorBuilder::new(square)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Square::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(square, name: &op_name, parents: vec![a.clone()], operation: Box::new(Square::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

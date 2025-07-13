@@ -40,7 +40,7 @@ macro_rules! tensor {
         $val.to_tensor()
     }};
 
-    ($val:expr $(, name: $name:expr)? $(, requires_grad: $grad:expr)? $(, parents: $parents:expr)? ) => {{
+    ($val:expr $(, name: $name:expr)? $(, requires_grad: $grad:expr)? $(, parents: $parents:expr)? $(, operation: $operation:expr)?) => {{
         use $crate::tensor::TensorRef;
 
         let mut builder = TensorBuilder::new($val);
@@ -52,6 +52,9 @@ macro_rules! tensor {
         )?
         $(
             builder = builder.parents($parents);
+        )?
+        $(
+            builder = builder.operation($operation);
         )?
         TensorRef::new(builder.build())
     }};

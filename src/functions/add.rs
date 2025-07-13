@@ -39,16 +39,10 @@ impl Operation for Add {
     fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
         let b = &inputs[1];
-        let sum = &a.borrow().arr + &b.borrow().arr;
+        let add = &a.borrow().arr + &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("add");
 
-        let tensor = TensorBuilder::new(sum.clone())
-            .name(&op_name)
-            .parents(vec![inputs[0].clone(), inputs[1].clone()])
-            .operation(Box::new(Add::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(add, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Add::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, _args: &[TensorRef]) -> Vec<TensorRef> {

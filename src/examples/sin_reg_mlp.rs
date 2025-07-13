@@ -10,11 +10,17 @@ use plotlib::{
 use rand::rng;
 use rand_distr::{Distribution, Normal};
 
-use crate::{add, examples::float_range, matmul, prod, relu, sub, tensor::TensorRef};
+use crate::{add, examples::float_range, matmul, prod, sub, tanh, tensor::TensorRef};
 use crate::{square, tensor};
 
 const EPOCHS: usize = 500;
 const LR: f64 = 1e-1;
+
+pub fn perform_sin_regression_mlp() {
+    let mut sin_reg_mlp = SinRegressionMlp::new(|x| tanh!(x));
+    sin_reg_mlp.train(EPOCHS, LR);
+    sin_reg_mlp.plot("sin_regression_mlp.svg");
+}
 
 pub struct SinRegressionMlp {
     xs: Vec<f64>,
@@ -212,10 +218,4 @@ impl Mlp {
 
         Array2::from_shape_vec((rows, cols), data).unwrap()
     }
-}
-
-pub fn perform_sin_regression_mlp() {
-    let mut sin_reg_mlp = SinRegressionMlp::new(|x| relu!(x));
-    sin_reg_mlp.train(EPOCHS, LR);
-    sin_reg_mlp.plot("sin_regression.svg");
 }

@@ -42,13 +42,7 @@ impl Operation for Prod {
         let product = &a.borrow().arr * &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("prod");
 
-        let tensor = TensorBuilder::new(product.clone())
-            .name(&op_name)
-            .parents(vec![inputs[0].clone(), inputs[1].clone()])
-            .operation(Box::new(Prod::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(product, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Prod::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

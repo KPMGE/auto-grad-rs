@@ -46,13 +46,7 @@ impl Operation for Sigmoid {
         let sigmoid = a.borrow().arr.mapv(|v| self.sigmoid(v));
         let op_name = self.name_manager.clone().borrow_mut().new_name("sigmoid");
 
-        let tensor = TensorBuilder::new(sigmoid)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Sigmoid::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(sigmoid, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sigmoid::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

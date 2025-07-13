@@ -43,13 +43,7 @@ impl Operation for Sum {
         let sum = a.borrow().arr.sum();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sum");
 
-        let tensor = TensorBuilder::new(sum)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Sum::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(sum, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sum::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

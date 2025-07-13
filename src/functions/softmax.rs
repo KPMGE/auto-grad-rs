@@ -65,13 +65,7 @@ impl Operation for Softmax {
         let softmax = Softmax::apply(&a.borrow().arr);
         let op_name = self.name_manager.clone().borrow_mut().new_name("softmax");
 
-        let tensor = TensorBuilder::new(softmax)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Softmax::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(softmax, name: &op_name, parents: vec![a.clone()], operation: Box::new(Softmax::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

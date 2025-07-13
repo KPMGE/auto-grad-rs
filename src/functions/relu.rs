@@ -56,13 +56,7 @@ impl Operation for ReLU {
         let relu = a.borrow().arr.mapv(|x| ReLU::apply(x));
         let op_name = self.name_manager.clone().borrow_mut().new_name("relu");
 
-        let tensor = TensorBuilder::new(relu)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(ReLU::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(relu, name: &op_name, parents: vec![a.clone()], operation: Box::new(ReLU::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

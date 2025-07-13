@@ -39,13 +39,7 @@ impl Operation for Cos {
         let cos_arr = a.borrow().arr.cos();
         let op_name = self.name_manager.clone().borrow_mut().new_name("cos");
 
-        let tensor = TensorBuilder::new(cos_arr)
-            .name(&op_name)
-            .parents(vec![inputs[0].clone()])
-            .operation(Box::new(Cos::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(cos_arr, name: &op_name, parents: vec![a.clone()], operation: Box::new(Cos::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

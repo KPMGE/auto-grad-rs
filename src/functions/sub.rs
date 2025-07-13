@@ -38,16 +38,11 @@ impl Operation for Sub {
     fn apply(&self, inputs: &[TensorRef]) -> TensorRef {
         let a = &inputs[0];
         let b = &inputs[1];
+
         let sub = &a.borrow().arr - &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("sub");
 
-        let tensor = TensorBuilder::new(sub.clone())
-            .name(&op_name)
-            .parents(vec![inputs[0].clone(), inputs[1].clone()])
-            .operation(Box::new(Sub::new()))
-            .build();
-
-        tensor!(tensor)
+        tensor!(sub, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Sub::new()))
     }
 
     fn grad(&self, back_grad: TensorRef, _args: &[TensorRef]) -> Vec<TensorRef> {
