@@ -21,7 +21,7 @@ macro_rules! ln {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ln {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -41,7 +41,7 @@ impl Operation for Ln {
         let lns = a.borrow().arr.mapv(|v| v.ln());
         let op_name = self.name_manager.clone().borrow_mut().new_name("ln");
 
-        tensor!(lns, name: &op_name, parents: vec![a.clone()], operation: Box::new(Ln::new()))
+        tensor!(lns, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

@@ -23,7 +23,7 @@ macro_rules! sum {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sum {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -43,7 +43,7 @@ impl Operation for Sum {
         let sum = a.borrow().arr.sum();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sum");
 
-        tensor!(sum, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sum::new()))
+        tensor!(sum, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

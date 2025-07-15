@@ -20,7 +20,7 @@ macro_rules! sin {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sin {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -40,7 +40,7 @@ impl Operation for Sin {
         let sin = a.borrow().arr.sin();
         let op_name = self.name_manager.clone().borrow_mut().new_name("sin");
 
-        tensor!(sin, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sin::new()))
+        tensor!(sin, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

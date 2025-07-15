@@ -21,7 +21,7 @@ macro_rules! sub {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sub {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -42,7 +42,7 @@ impl Operation for Sub {
         let sub = &a.borrow().arr - &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("sub");
 
-        tensor!(sub, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Sub::new()))
+        tensor!(sub, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, _args: &[TensorRef]) -> Vec<TensorRef> {

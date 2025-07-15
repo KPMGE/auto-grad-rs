@@ -20,7 +20,7 @@ macro_rules! sigmoid {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sigmoid {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -46,7 +46,7 @@ impl Operation for Sigmoid {
         let sigmoid = a.borrow().arr.mapv(|v| self.sigmoid(v));
         let op_name = self.name_manager.clone().borrow_mut().new_name("sigmoid");
 
-        tensor!(sigmoid, name: &op_name, parents: vec![a.clone()], operation: Box::new(Sigmoid::new()))
+        tensor!(sigmoid, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

@@ -20,7 +20,7 @@ macro_rules! tanh {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tanh {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -40,7 +40,7 @@ impl Operation for Tanh {
         let tanh = a.borrow().arr.mapv(f64::tanh);
         let op_name = self.name_manager.clone().borrow_mut().new_name("tanh");
 
-        tensor!(tanh, name: &op_name, parents: vec![a.clone()], operation: Box::new(Tanh::new()))
+        tensor!(tanh, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

@@ -23,7 +23,7 @@ macro_rules! softmax {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Softmax {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -65,7 +65,7 @@ impl Operation for Softmax {
         let softmax = Softmax::apply(&a.borrow().arr);
         let op_name = self.name_manager.clone().borrow_mut().new_name("softmax");
 
-        tensor!(softmax, name: &op_name, parents: vec![a.clone()], operation: Box::new(Softmax::new()))
+        tensor!(softmax, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

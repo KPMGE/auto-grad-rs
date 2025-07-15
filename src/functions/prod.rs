@@ -22,7 +22,7 @@ macro_rules! prod {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Prod {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -42,7 +42,7 @@ impl Operation for Prod {
         let product = &a.borrow().arr * &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("prod");
 
-        tensor!(product, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Prod::new()))
+        tensor!(product, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

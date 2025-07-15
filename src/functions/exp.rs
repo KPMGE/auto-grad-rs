@@ -20,7 +20,7 @@ macro_rules! exp {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Exp {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -40,7 +40,7 @@ impl Operation for Exp {
         let exp = a.borrow().arr.mapv(|v| v.exp());
         let op_name = self.name_manager.clone().borrow_mut().new_name("exp");
 
-        tensor!(exp, name: &op_name, parents: vec![a.clone()], operation: Box::new(Exp::new()))
+        tensor!(exp, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

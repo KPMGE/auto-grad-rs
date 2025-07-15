@@ -22,7 +22,7 @@ macro_rules! add {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Add {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -42,7 +42,7 @@ impl Operation for Add {
         let add = &a.borrow().arr + &b.borrow().arr;
         let op_name = self.name_manager.clone().borrow_mut().new_name("add");
 
-        tensor!(add, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(Add::new()))
+        tensor!(add, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, _args: &[TensorRef]) -> Vec<TensorRef> {

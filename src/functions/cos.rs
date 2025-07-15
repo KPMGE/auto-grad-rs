@@ -20,7 +20,7 @@ macro_rules! cos {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cos {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -39,7 +39,7 @@ impl Operation for Cos {
         let cos_arr = a.borrow().arr.cos();
         let op_name = self.name_manager.clone().borrow_mut().new_name("cos");
 
-        tensor!(cos_arr, name: &op_name, parents: vec![a.clone()], operation: Box::new(Cos::new()))
+        tensor!(cos_arr, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

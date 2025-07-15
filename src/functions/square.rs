@@ -20,7 +20,7 @@ macro_rules! square {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Square {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -40,7 +40,7 @@ impl Operation for Square {
         let square = a.borrow().arr.mapv(|v| v.powf(2.0));
         let op_name = self.name_manager.clone().borrow_mut().new_name("square");
 
-        tensor!(square, name: &op_name, parents: vec![a.clone()], operation: Box::new(Square::new()))
+        tensor!(square, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

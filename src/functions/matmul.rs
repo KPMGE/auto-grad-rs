@@ -29,7 +29,7 @@ macro_rules! matmul {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MatMul {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -50,7 +50,7 @@ impl Operation for MatMul {
         let mul = a.borrow().arr.clone().dot(&b.borrow().arr);
         let op_name = self.name_manager.clone().borrow_mut().new_name("matmul");
 
-        tensor!(mul, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(MatMul::new()))
+        tensor!(mul, name: &op_name, parents: vec![a.clone(), b.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {

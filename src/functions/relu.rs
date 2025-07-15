@@ -20,7 +20,7 @@ macro_rules! relu {
     }};
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReLU {
     name_manager: Rc<RefCell<NameManager>>,
 }
@@ -56,7 +56,7 @@ impl Operation for ReLU {
         let relu = a.borrow().arr.mapv(|x| ReLU::apply(x));
         let op_name = self.name_manager.clone().borrow_mut().new_name("relu");
 
-        tensor!(relu, name: &op_name, parents: vec![a.clone()], operation: Box::new(ReLU::new()))
+        tensor!(relu, name: &op_name, parents: vec![a.clone()], operation: Box::new(self.clone()))
     }
 
     fn grad(&self, back_grad: TensorRef, args: &[TensorRef]) -> Vec<TensorRef> {
