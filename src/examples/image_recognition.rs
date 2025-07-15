@@ -8,10 +8,11 @@ use image::{GrayImage, Luma};
 
 use crate::{add, ln, prod, softmax, sum, tensor::TensorRef};
 use crate::{matmul, relu, square, sub, tensor};
-const EPOCHS: usize = 500;
+
+const EPOCHS: usize = 50;
 const LR: f64 = 1e-1;
-const TRAIN_SIZE: usize = 5000;
-const TEST_SIZE: usize = 1000;
+const TRAIN_SIZE: usize = 1000;
+const TEST_SIZE: usize = 100;
 
 pub fn perform_image_recognition() {
     let Mnist {
