@@ -18,9 +18,21 @@ impl ToArray2 for f64 {
     }
 }
 
+impl ToArray2 for i32 {
+    fn to_array2(self) -> Array2<f64> {
+        array![[self.into()]]
+    }
+}
+
 impl ToArray2 for Vec<f64> {
     fn to_array2(self) -> Array2<f64> {
         Array2::from_shape_vec((self.len(), 1), self).expect("Invalid shape!")
+    }
+}
+
+impl ToArray2 for &[f64] {
+    fn to_array2(self) -> Array2<f64> {
+        Array2::from_shape_vec((self.len(), 1), self.to_vec()).expect("Invalid shape!")
     }
 }
 
