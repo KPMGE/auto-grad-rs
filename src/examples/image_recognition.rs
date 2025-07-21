@@ -101,14 +101,17 @@ pub fn perform_image_recognition() {
     );
 }
 
-pub struct MnistMlp {
-    mlp: Mlp,
+pub struct MnistMlp<F> {
+    mlp: Mlp<F>,
     images: Array2<f64>,
     labels: Array2<f64>,
 }
 
-impl MnistMlp {
-    pub fn new(activation_fn: ActivationFn, images: Array2<f64>, labels: Array2<f64>) -> Self {
+impl<F> MnistMlp<F>
+where
+    F: Fn(TensorRef) -> TensorRef,
+{
+    pub fn new(activation_fn: F, images: Array2<f64>, labels: Array2<f64>) -> Self {
         MnistMlp {
             mlp: Mlp::new(activation_fn),
             images,
@@ -201,9 +204,8 @@ impl MnistMlp {
     }
 }
 
-type ActivationFn = fn(TensorRef) -> TensorRef;
-pub struct Mlp {
-    activation_fn: ActivationFn,
+pub struct Mlp<F> {
+    activation_fn: F,
     w0: TensorRef,
     b0: TensorRef,
     w1: TensorRef,
@@ -212,8 +214,11 @@ pub struct Mlp {
     b2: TensorRef,
 }
 
-impl Mlp {
-    pub fn new(activation_fn: ActivationFn) -> Self {
+impl<F> Mlp<F>
+where
+    F: Fn(TensorRef) -> TensorRef,
+{
+    pub fn new(activation_fn: F) -> Self {
         // Input Layer: 784 features (28x28 flattened image)
         // Hidden Layer 1: 128 neurons
         let w0 = tensor!(Self::init_matrix(128, 784));

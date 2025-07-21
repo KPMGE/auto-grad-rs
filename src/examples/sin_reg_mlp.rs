@@ -22,14 +22,17 @@ pub fn perform_sin_regression_mlp() {
     sin_reg_mlp.plot("sin_regression_mlp.svg");
 }
 
-pub struct SinRegressionMlp {
+pub struct SinRegressionMlp<F> {
     xs: Vec<f64>,
     ys: Vec<f64>,
-    mlp: Mlp,
+    mlp: Mlp<F>,
 }
 
-impl SinRegressionMlp {
-    pub fn new(activation_fn: ActivationFn) -> Self {
+impl<F> SinRegressionMlp<F>
+where
+    F: Fn(TensorRef) -> TensorRef,
+{
+    pub fn new(activation_fn: F) -> Self {
         let normal = Normal::new(0.0, 1.0).unwrap();
         let mut rng = rng();
 
@@ -155,9 +158,8 @@ impl SinRegressionMlp {
     }
 }
 
-type ActivationFn = fn(TensorRef) -> TensorRef;
-struct Mlp {
-    activation_fn: ActivationFn,
+struct Mlp<F> {
+    activation_fn: F,
     w0: TensorRef,
     b0: TensorRef,
     w1: TensorRef,
@@ -166,8 +168,11 @@ struct Mlp {
     b2: TensorRef,
 }
 
-impl Mlp {
-    pub fn new(activation_fn: ActivationFn) -> Self {
+impl<F> Mlp<F>
+where
+    F: Fn(TensorRef) -> TensorRef,
+{
+    pub fn new(activation_fn: F) -> Self {
         let w0 = tensor!(Self::init_matrix(64, 1));
         let b0 = tensor!(Self::init_matrix(64, 1));
         let w1 = tensor!(Self::init_matrix(64, 64));

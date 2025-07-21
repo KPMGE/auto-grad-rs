@@ -40,14 +40,15 @@ pub fn float_range(start: f64, end: f64, step: f64) -> Vec<f64> {
     (start_i..=end_i).map(|i| (i as f64) * step).collect()
 }
 
-type ObjectiveFn = fn(&[TensorRef]) -> TensorRef;
-
-fn gradient_descent(
-    objective_fn: ObjectiveFn,
+fn gradient_descent<F>(
+    objective_fn: F,
     n_epochs: usize,
     lr: f64,
     inputs: &[TensorRef],
-) -> (Vec<f64>, Vec<f64>) {
+) -> (Vec<f64>, Vec<f64>)
+where
+    F: Fn(&[TensorRef]) -> TensorRef,
+{
     let mut loss_vals = Vec::new();
     let mut input_vals = Vec::new();
 
