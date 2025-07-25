@@ -9,10 +9,10 @@ use image::{GrayImage, Luma};
 use crate::{add, ln, prod, softmax, sum, tensor::TensorRef};
 use crate::{matmul, relu, square, sub, tensor};
 
-const EPOCHS: usize = 50;
-const LR: f64 = 1e-1;
+const EPOCHS: usize = 100;
+const LR: f64 = 3e-1;
 const TRAIN_SIZE: usize = 1000;
-const TEST_SIZE: usize = 100;
+const TEST_SIZE: usize = 10;
 
 pub fn perform_image_recognition() {
     let Mnist {
@@ -177,11 +177,11 @@ where
     fn gradient_descent(&self, n_epochs: usize, lr: f64, inputs: &[TensorRef]) {
         for epoch in 0..n_epochs {
             for input in inputs {
-                input.borrow_mut().zero_grad();
+                input.zero_grad();
             }
 
             let loss = self.cross_entropy_loss(&[]);
-            loss.clone().borrow_mut().backward(None);
+            loss.backward(None);
 
             let current_loss: Vec<f64> = loss.borrow().arr.iter().map(|x| *x).collect();
             assert!(current_loss.len() == 1, "loss value must be a scalar!");

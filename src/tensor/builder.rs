@@ -39,6 +39,14 @@ impl TensorRef {
             Err(rc) => Err(TensorRef(rc)),
         }
     }
+
+    pub fn zero_grad(&self) {
+        self.borrow_mut().zero_grad();
+    }
+
+    pub fn backward(&self, grad: Option<Self>) {
+        self.borrow_mut().backward(grad);
+    }
 }
 
 #[derive(Debug)]
@@ -78,6 +86,14 @@ impl Tensor {
                 parent.borrow_mut().backward(Some(parent_grad));
             }
         }
+    }
+
+    pub fn grad(&self) -> Option<Ref<'_, Tensor>> {
+        self.grad.as_ref().map(|g| g.borrow())
+    }
+
+    pub fn grad_mut(&self) -> Option<RefMut<'_, Tensor>> {
+        self.grad.as_ref().map(|g| g.borrow_mut())
     }
 
     pub fn zero_grad(&mut self) {
