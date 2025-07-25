@@ -16,5 +16,5 @@ cargo build --release
 Once the build is complete, you will have an executable under the `target/release/` folder, you can run it directly
 
 ```bash
-./target/release/autograd-rs
+./target/release/auto-grad-rs
 ```
